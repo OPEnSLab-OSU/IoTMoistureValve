@@ -1,0 +1,51 @@
+\documentclass[journal,10pt,onecolumn,draftclsnofoot,]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper,top=.75in,bottom=.75in,left=.75in,right=.75in,]{geometry}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage{titling}
+
+\singlespacing
+
+\begin{document}
+\title{Problem Statement}
+\author{Peter Dorich, CS461, Fall Term 2017}
+\maketitle
+\nocite{*}
+
+\section{Abstract}
+This document outlines the Irrigation valve project. This project is aimed at adding an existing irrigation valve to the internet of things (IoT), which is essentially a network of electronics that connect to the internet. This will allow the valve to be controlled by the client from a web browser in order to automate the process and create schedules. The project is geared toward proof of concept, so the deliverables will consist of working prototypes and tested concepts. To complete this project, we are breaking it into three parts to make organization easier. 
+
+\newpage
+\section{Problem}
+The goal of this project is to change an existing water irrigation valve and add internet connectivity to it. This valve has already been created, and is designed to open and close automatically. By adding this valve to the internet of things (IoT), the client would be able to make schedules for the valve, view soil moisture information, gather data, and change parameters. The valve will also be programmed to utilize soil moisture sensors to determine when the valve should open.
+\newline
+
+\section{Solution}
+The group and our client discussed the objectives and deliverables, and came up with a plan to break down the project into three parts. The first part of the project includes the valve and the soil moisture sensors. The second part is the wireless hub, and the third is the web app. 
+\newline
+
+The first part will consist of getting the soil moisture sensors to gather data and wirelessly transmit it to the wireless hub. The programming will consist of Arduino for the hardware, and C. The idea is to transmit the data every 15 minutes with a unique ID. The sensors and the valve will be based on a set of conditionals that are required to make it run.  
+\newline
+
+The second part of the project is to pick up the transmitted data from part 1. This will be done in a wireless hub that receives the data from the sensors, as well as verifies that it matches the unique ID. The hub will handle all the conditional control signals that go from the web client to the sensors and the valve. One issue we will need to track is what happens if the hub goes down, and the valve needs to be turned off. 
+\newline
+
+The last section is to set up the web platform to interact with the irrigation valve. Our client gave us the names of software tools that he’d like us to use in this project, for specific purposes. The web app needs to control the states of the valve from the browser. To do this, we will use Adafruit.io. This is a software tool designed to stream, collect, or interact with data collected from an IoT device. This tool is designed to play friendly with other software making it possible to get our system going. The last step of this project is to use real soil moisture data from online to control the valve. To do this, we will use IFTTT, which is a service allowing us to create applets and web apps. 
+\newline
+
+The client would like each of the three group members to choose one section and specialize in it. This tactic for tackling the project is most ideal. I plan for each group member to slowly become familiar with all of their new software/hardware tools. Then, as the project advances and we begin to combine our work into a cohesive system, each group member will demonstrate their knowledge in their area to help the group succeed. Breaking up the project will help us stay organized, as well as help ensure we don’t lose sight of the main goal.
+\newline
+
+As far as software used to help our group stay organized, there are two major tools that have been picked out. For direct group communication with each other, we are going to set up a discord server to make voice or video calls. All our project information, to-do lists, progress, timeline, client communication, and more, will be done on a website called Basecamp.  Basecamp is a project management and organizational tool that the client requested we use.
+\newline
+
+
+\section{Deliverables}
+This project has multiple deliverables, and all of which fall into the proof of concept category, as that is what this project is most focused on. We will end the project with three separate proof of concept irrigation valves with internet connected soil-moisture sensors. These valves will be functional and tested in the field as well. The second deliverable will be the proof of concept for how the client will interact with hardware, which would be a web application. This app will enable the client to control the valve’s parameters and timing. The last deliverable is proof of concept algorithms for the application, to allow automation of the system based on certain parameters. These three sets of deliverables coincide directly to the major three parts of the project, making it relatively clear that each section has been completed. It has also been noted that we would like to create a weatherproof enclosure to house our electronics. To do this, a software program called Fusion360 will be used to 3D model and print the enclosure. 
+\newline
+
+
+
+\end{document}
+
