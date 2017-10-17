@@ -1,0 +1,190 @@
+\documentclass[onecolumn, draftclsnofoot,10pt, compsoc]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{setspace}
+
+%Personal imports
+%\usepackage{cite}
+
+\usepackage{geometry}
+\geometry{textheight=9.5in, textwidth=7in}
+
+% 1. Fill in these details
+\def \CapstoneTeamName{		Group}
+\def \CapstoneTeamNumber{		35}
+\def \GroupMemberOne{			Christopher Carlsen}
+\def \GroupMemberTwo{			Yizheng Wang}
+\def \GroupMemberThree{			Peter Dorich}
+\def \CapstoneProjectName{		Develop an Internet of Things Irrigation Valve}
+\def \CapstoneSponsorCompany{	 	OSU \textbar Openly Published Environmental Sensing Lab (OPEnS) }
+\def \CapstoneSponsorPerson{		Chet Udell}
+
+% 2. Uncomment the appropriate line below so that the document type works
+\def \DocType{		Problem Statement
+	%Requirements Document
+	%Technology Review
+	%Design Document
+	%Progress Report
+}
+
+\newcommand{\NameSigPair}[1]{\par
+	\makebox[2.75in][r]{#1} \hfil 	\makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill		\makebox[.75in]{\hrulefill}}
+	\par\vspace{-12pt} \textit{\tiny\noindent
+		\makebox[2.75in]{} \hfil		\makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill	\makebox[.75in][r]{Date}}}}
+% 3. If the document is not to be signed, uncomment the RENEWcommand below
+%\renewcommand{\NameSigPair}[1]{#1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+	\begin{titlepage}
+		\pagenumbering{gobble}
+		\begin{singlespace}
+			\includegraphics[height=4cm]{coe_v_spot1}
+			\hfill 
+			% 4. If you have a logo, use this includegraphics command to put it on the coversheet.
+			%\includegraphics[height=4cm]{CompanyLogo}   
+			\par\vspace{.2in}
+			\centering
+			\scshape{
+				\huge CS461 Capstone \DocType \par
+				{\large\today - Fall Term}\par
+				\vspace{.5in}
+				\textbf{\Huge\CapstoneProjectName}\par
+				\vfill
+				{\large Prepared for}\par
+				\Huge \CapstoneSponsorCompany\par
+				\vspace{5pt}
+				{\Large\NameSigPair{\CapstoneSponsorPerson}\par}
+				{\large Prepared by }\par
+				Group\CapstoneTeamNumber\par
+				% 5. comment out the line below this one if you do not wish to name your team
+				%\CapstoneTeamName\par 
+				\vspace{5pt}
+				{\Large
+					\NameSigPair{\GroupMemberOne}\par
+					%                \NameSigPair{\GroupMemberTwo}\par
+					%                \NameSigPair{\GroupMemberThree}\par
+				}
+				\vspace{20pt}
+			}
+			\begin{abstract}
+				% 6. Fill in your abstract   --- TODO 
+				This document covers the the global issue of water shortage as it pertains to the field of agriculture, and a proposed solution to it.
+				Agriculture makes up the vast majority of water usage in most parts of the world, and this projects intention is to develop a solution to that issue.
+				The contents within will outline the overall problem, and the agreed upon terms of completion between our group and its client.
+			\end{abstract}     
+		\end{singlespace}
+	\end{titlepage}
+	\newpage
+	\pagenumbering{arabic}
+	\tableofcontents
+	% 7. uncomment this (if applicable). Consider adding a page break.
+	%\listoffigures
+	%\listoftables
+	\clearpage
+	
+	% 8. now you write!
+	\section{Problem}
+	
+	%Agriculture consumes 70% of the planet’s accessible freshwater. Climate change continues to expand water-strained regions around the world. When farms over water crops, bad things happen.
+	\subsection{Overview}
+	Agricultural over-use of water resources is an ever increasing threat to overall global well being.
+	When adding climate change issues to this context, these concerns grow exponentially.
+	Areas who's water resources are already strained will find themselves in an increasingly difficult situation as agriculture needs continue to increase, and climate changes persist.
+	Directly speaking, agricultural irrigation can account for up to 70\% of water resource consumption in a given area.%\cite{global_agriculture}
+	This is the problem that this project aims to address.
+	
+	More specifically, the problem that our client and this group aim to address is improving upon an existing model of an irrigation valve originally designed by P\&R Surge Systems, Inc.
+	The current valve system functions through the use of a solar-powered, timer-based device that operates the valve.
+	However this system still leads to issues where crops are being unnecessarily watered in areas where the soil has retained sufficient moisture and needs to additional water at that time.
+	Additionally, this solution needs to be implemented in as cost-efficient a way as possible, to maximize its accessibility and usage.
+	
+	\section{Solution proposal}
+	%P&R Surge Systems wants to partner with YOU to design the next smart precision-irrigation system for the agricultural industry. Your team will work directly with Dr. Chet Udell of OSU's Openly Published Environmental Sensing Lab and David Jurado, Operations Manager of P&R, to create an Open Source, modular, plug-and-play, internet-connected water valve system with soil moisture sensors. With hundreds of these in a field, you'll ensure water is only used where it is needed and that farmers and machines alike have access to real-time soil moisture content of their fields.
+	
+	\subsection{Overview}
+	In seeking to solve the aforementioned water usage problem, our client has envisioned a solution that would allow agriculturalists access to soil moisture data, through use of an Internet of Things style device.
+	This device would record soil moisture data, and then transmit the data through a wireless medium back to a home-station, which would then process and record the data, while uploading it to the internet to share.
+	This data would be utilized by the software, running it through decision-making algorithms which would allow automated, wireless control of the valves, getting water only to the areas that need it.
+	These algorithms could be either built-in, or user-defined, using the moisture data to make more informed and sustainable choices regarding the timing of the irrigation of their crops.
+	
+	An efficient and economically-viable water transport and valve system has already been acquired by our client for use in this project.
+	The valve-plate that directs water flow within this pipe system is controlled by a simple spur-style gear head construct.
+	This gear is then connected to the solar-powered control device, allowing mechanical control of the valve-plate from the pipes exterior.
+	The client would like to create an external hardware add-on that physically mounts and communicates instructions to the valve-control device.
+	This hardware add-on would also be the communication device that relays the data from separate soil moisture sensors back to a home-station.
+	The user would be able to track data about soil moisture in their various agricultural plots, through use of either a web or application interface.
+	
+	Our client's desired solution to this issue consists of three main parts, that will all operate in unison to achieve the previously mentioned goals.
+	
+	\subsection{Part one - Sensor and communication devices}
+	Required skills:
+	\begin{itemize}
+		\item C programming proficiency
+		\item Understanding of digital logic and microprocessors
+		\item Experience with circuits and sensors
+		\item Wireless communications understanding
+	\end{itemize}
+	The first production of this project will be the creation of multiple portable devices.
+	The devices will use microprocessors, specifically Arduino boards.
+	These Arduino will be broken up into two categories, the soil moisture sensor, and the wireless communication devices.
+	The moisture sensing board will likely have a physical connection to the communication device that is within the external enclosure.
+	The Arduino within the external enclosure will be used to relay the soil data to the base station, and additionally will receive the commands to actually control the valve-plate.
+	The optimal design for these devices will need to take cost heavily into consideration, to maintain the greatest level of accessibility.
+	These devices will be programmed using the C language.
+	
+	\subsection{Part two - Waterproof enclosure}
+	Required skills:
+	\begin{itemize}
+		\item Proficiency with CAD software (specifically Fusion 360)
+		\item Understanding of materials
+	\end{itemize}
+	
+	The next step is to develop an enclosure for the newly designed hardware.
+	In particular the soil moisture monitors and the mounted information relay will need to be housed within waterproof enclosures, as they will always be directly exposed to the elements.
+	These enclosures will be designed in a CAD environment (specifically Fusion 360, as per the client) and will then be 3D printed.
+	The materials for these enclosures should be durable enough to withstand exposure, while also trying to keep materials costs to a minimum.
+	
+	\subsection{Part three - Web and/or application interface}
+	Required skills:
+	\begin{itemize}
+		\item Web-development proficiency (HTML/CSS/JavaScript/Node/etc.)
+		\item IFTTT (or comparable) proficiency
+		\item Web applet development experience
+		\item Wireless communications understanding
+		\item Mobile development skills
+	\end{itemize}
+	The final piece of this project will involve the development of a user-readable software platform.
+	In particular, this software be used to track local soil moisture levels, and allow agriculturalists to choose the most optimal times to run the irrigation systems that water their crops.
+	This software should be deployed to both a web-based platform, as well as a desktop application platform.
+	Optimally, the client would also like a mobile app developed for Android, iOS, or potentially both.
+	The data that this software handles should also, preferentially, be available online for others to view.
+	
+	\pagebreak
+	\section{Performance metrics}
+	This project will be considered successfully complete upon delivery of the following:
+	\begin{itemize}
+		\item Proof-of-concept Arduino devices:
+		\begin{itemize}
+			\item A soil moisture sensor
+			\item Wireless communication devices for relaying data and instructions
+		\end{itemize}
+		\item Hardware enclosures that:
+		\begin{itemize}
+			\item Are durable and water/elements proof
+			\item Have materials and design chosen with affordability in mind
+		\end{itemize}
+		\item Proof-of-concept software suite with:
+		\begin{itemize}
+			\item Soil-moisture data tracking and presentation abilities
+			\item Remote control capabilities of irrigation valves
+			\item Internet data-sharing of collected data
+			\item Intelligently designed algorithms that can be used to automate valve control        
+		\end{itemize}
+		\item All items must be functional and field demonstration ready
+	\end{itemize}
+	\newpage
+	%\bibliographystyle{IEEEtran}
+	%\bibliography{references}
+	
+\end{document}
