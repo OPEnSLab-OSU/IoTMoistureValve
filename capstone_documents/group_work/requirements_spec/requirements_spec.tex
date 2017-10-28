@@ -41,7 +41,7 @@
 		\begin{singlespace}
 			\includegraphics[height=4cm]{coe_v_spot1}
 			\hfill 
-			% 4. If you have a logo, use this includegraphics command to put it on the coversheet.
+			% 4. If you have a logo, use this include graphics command to put it on the coversheet.
 			%\includegraphics[height=4cm]{CompanyLogo}   
 			\par\vspace{.2in}
 			\centering
@@ -69,8 +69,8 @@
 			}
 			\begin{abstract}
 				% 6. Fill in your abstract   --- TODO 
-				This document is the Requirements Specification that will be used informally as a contract between the group and client.
-                It will detail what the 
+				This document is the Requirements Specification that will be used to detail the objectives of the Internet of Things Irrigation Valve project.
+				It will contain a more specific look at what completion goals for this project are and what a user of the this project's product should reasonably expect.
 			\end{abstract}     
 		\end{singlespace}
 	\end{titlepage}
@@ -84,21 +84,57 @@
 	
 	% 8. now you write!
 	\section{Introduction}
-    	\subsection{Purpose}
-        \subsection{Scope}
-        \subsection{Definitions, acronyms and abbreviations}
-        \subsection{References}
-        \subsection{Overview}
+	\subsection{Purpose}
+	This requirements specification (RS) document serves to more concretely establish the desired end goals of the Irrigation Valve project.
+	Its intended usage is for the Irrigation Valve team and their client, Chet Udell, as well as any third party groups with whom may become involved over the course of the project. 
+	\subsection{Scope}
+	There will be three overall products of this project, defined a follows -\vspace{-.1in}
+	\subsubsection{Soil Moisture Sensor/Valve Control}
+	The soil moisture sensor's primary job will be to read moisture data from a pre-existing piece of hardware.
+	Upon reading this data, it will send it to a designated data-collection hub.
+	This device will also embody the "physical" aspect of this project, as it will be the device that engages or disengages an attached valve.
+	\subsubsection{Centralized Data Hub/Command Relay}
+	This device will be used as the communication go-between device that collects data from the various sensors, and then relays it to a remote data-collection point.
+	Its other primary function will be to send instructions passed to it from the user (via the user interface) to individual sensor devices, detailing when a device should be turned on or off.
+	\subsubsection{Web-based User Interface/Data Tracker}
+	Serving as the "face" of the project, this will be the actual interface with which this system's users will interact.
+	The user will use this system to view recorded moisture data from various sensors, as well as use it to make decisions on when and where water is most needed in their field.
+	This system will take user input and send it to desired watering schedules (via the relay hub) to the individual sensor/valve-control devices in the desired watering areas.
+	\subsection{Definitions, acronyms and abbreviations}
+	For purposes of brevity, some abbreviations may be used through out this document as follows:
+	\begin{itemize}
+		\item{[Sensor/soil sensor/moisture sensor] - Will be used in reference to the "Soil Moisture Sensor" device and its related parts.}
+		\item{[Data hub/hub/relay] - Will be used in reference to the "Soil Moisture Sensor/Valve Control" device and its related parts.}
+		\item{[UI/Interface/database/tracker] - Will be used in reference to the "Web-based User Interface/Data Tracker" device and its related parts.}
+	\end{itemize}
+	\subsection{References}
+	See Appendix A
+	\subsection{Overview}
+	
 	\section{Overall description}
-    	\subsection{Product perspective}
-        \subsection{Product functions}
-        \subsection{User characteristics}
-        \subsection{Constraints}
-        \subsection{Assumptions and dependencies}
-    \section{Specific requirements}
+	
+	%TODO - FILL OUT remainder of this section with information regarding
+	% a) System interfaces;
+	% b) User interfaces;
+	% c) Hardware interfaces;
+	% d) Software interfaces;
+	% e) Communications interfaces;
+	% f) Memory;
+	% g) Operations;
+	% h) Site adaptation requirements;
+	% (See section 5.2.1 for more information)
+	
+	\subsection{Product functions}
+	\subsection{User characteristics}
+	\subsection{Constraints}
+	\subsection{Assumptions and dependencies}
+	\section{Specific requirements}
 
+	
 	\newpage
-	%\bibliographystyle{IEEEtran}
-	%\bibliography{references}
+	\section{Appendix A - Bibliography}
+	\nocite{*} %TODO - Remove this if citing things.
+	\bibliographystyle{IEEEtran}
+	\bibliography{references}
 	
 \end{document}
