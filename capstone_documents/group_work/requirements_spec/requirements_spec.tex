@@ -103,8 +103,8 @@
 	\subsection{Definitions, acronyms and abbreviations}
 	For purposes of brevity, some abbreviations may be used through out this document as follows:
 	\begin{itemize}
-		\item{[Sensor/soil sensor/moisture sensor] - Will be used in reference to the "Soil Moisture Sensor" device and its related parts.}
-		\item{[Data hub/hub/relay] - Will be used in reference to the "Soil Moisture Sensor/Valve Control" device and its related parts.}
+		\item{[Sensor/soil sensor/moisture sensor] - Will be used in reference to the "Soil Moisture Sensor/Valve Control" device and its related parts.}
+		\item{[Data hub/hub/relay] - Will be used in reference to the "Information Communication Relay/Command" device and its related parts.}
 		\item{[UI/Interface/database/tracker] - Will be used in reference to the "Web-based User Interface/Data Tracker" device and its related parts.}
 	\end{itemize}
 	\subsection{References}
@@ -112,6 +112,10 @@
 	\subsection{Overview}
 	
 	\section{Overall description}
+	\subsection{Product perspective}
+	This projects final product, a soil-moisture data tracking and informed irrigation valve control system, will stand as an individual product composed of three parts.
+	The product, however, will be included under a blanket project group known as Project Loom.
+	It will not be reliant on other Project Loom products for any functionality, but may potentially be considered as a competent part of an overall package delivered by Project Loom.
 	
 	%TODO - FILL OUT remainder of this section with information regarding
 	% a) System interfaces;
@@ -127,9 +131,46 @@
 	\subsection{Product functions}
 	\subsection{User characteristics}
 	\subsection{Constraints}
+	The following are the design constraints for the Hub portion of the project.
+	These constraints are all hardware and software that our client would like to use.
+	This preference is because the previous technologies and hardware are already being used in the organization, and are needed in order to maintain compatibility and uniformity.
+	\begin{itemize}
+		\item{32u4 RFM95 LORA Radio with 915 MHz processors (Sensors and Hub)}
+		\item{Ethernet Shield (Hub)}
+		\item{Arduino IDE (Sensors and Hub)}
+		\item{MQTT (Hub and User Interface)}
+	\end{itemize}
 	\subsection{Assumptions and dependencies}
 	\section{Specific requirements}
-
+	\subsection{Soil Moisture Sensor/Valve Control}
+	\begin{itemize}
+		\item{As a user, I want the sensor device to that take moisture data samples every 15 minutes.}
+		\item{As a user, I want the irrigation valve turned on or off, based on a set of conditionals triggers that I set.}
+		\item{As a user, I want a fail-safe/contingency set of instructions that the device will fall back on should it lose contact with the hub device or internet.}
+	\end{itemize}
+	
+	\subsection{Information Communication Relay/Command}
+	\begin{itemize}
+		\item{As a user, I want the communications between the hub and sensor devices to use a wireless medium.}
+		\item{As a user, I want the hub to relay information between the valve and the web application.}
+		\item{As a user, I want the hub to send irrigation control information \textit{only} to valve-control devices that I specify.}
+		\item{As a user, I want the hub to tell sensor devices which valve-control state that they should use, between:}
+		\begin{itemize}
+			\item{Valve opens and closes based only on soil moisture data.}
+			\item{Valve opens and closes based only on the time of day.}
+			\item{Valve opens and closes based on both time of day and moisture data.} 
+			\item{(\textbf{Stretch Goal}) Manual only}
+		\end{itemize}
+	\end{itemize}
+	
+	\subsection{Web-based User Interface/Data Tracker}
+	\begin{itemize}
+		\item{As a user, I want to view the collected moisture data from various moisture sensor devices in my field, as well as the position status of connected valves (e.g. open/closed).}
+		\item{As a user, I want to use the application interface to set valve activation conditions for specific valve devices.}
+	\end{itemize}    
+	\section{Gantt chart}
+	(This is just a place holder at the moment.)\par
+	\noindent\includegraphics[width=\linewidth]{chart_cropped}
 	
 	\newpage
 	\section{Appendix A - Bibliography}
