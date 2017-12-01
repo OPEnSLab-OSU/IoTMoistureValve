@@ -145,44 +145,62 @@
         \subsection{Conformance}
        
         \section{Design Overview and Description}
-        \subsection{Document Overview}
-        \subsection{Project Design Stakeholders}
-        \subsection{Project Design Concerns}
-        \subsection{Project Design Viewpoints}
+        \subsection{Summary}
+        \subsection{Project Stakeholders}
+        \subsection{Project Concerns}
+        \subsection{Project Viewpoints}
         
         \section{Viewpoint Breakdowns}
         
         \subsection{Composition Viewpoint}
+        As per the IEEE Std 1006-2009 document standard, the Composition viewpoint is described as follows: "The Composition viewpoint describes the way the design subject is (recursively) structured into constituent parts and establishes the roles of those parts."
         \subsubsection{Viewpoint Stakeholders and Concerns}
+        The main stakeholders of this viewpoint will be the project team and their client.
+        As the primary authors and developers of the project, the overall composition of the project has been broken into three primary parts:
+        \begin{itemize}
+        \item User interface for valve-point data display and valve-control parameter establishment.
+        \item Central message-relay hub device.
+        \item End-point soil-data collection and valve-control device.
+        \end{itemize}
+        The end-user stakeholders should have minimal concern over this particular design viewpoint beyond affordability of the end-goal product.
         \subsubsection{Viewpoint Views}
-        \subsubsubsection{View1}
-        \subsubsubsection{View2}
-        \subsubsubsection{View3}
+        \subsubsubsection{User Interface}
+        \subsubsubsection{Hub Device}
+        \subsubsubsection{Soil-Data Collection and Valve-Control}
+        This piece of the project's design will be the primary form of real-world data collection
+        The gathered data will be passed through decision-making functions that compare it against user-defined parameters, ultimately deciding whether to engage a valve to allow watering.
+        The sensor devices' primary job will be the collection of external data regarding the current volumetric water content (VWC), soil salinity and electrical conductivity of the soil in the immediate surrounding area of an arbitrary valve in the user's field.
+        This device will also serve as the primary real-world actuator of the system, using power relays to control the flow of water for a connected water-valve.
         
         \subsection{Context Viewpoint}
+        As per the IEEE Std 1006-2009 document standard, the Context viewpoint is described as follows: "The Context viewpoint depicts services provided by a design subject with reference to an explicit context. That context is defined by reference to actors that include users and other stakeholders, which interact with the  design  subject  in  its  environment."    
         \subsubsection{Viewpoint Stakeholders and Concerns}
         \subsubsection{Viewpoint Views}
-        \subsubsubsection{View1}
-        \subsubsubsection{View2}
-        \subsubsubsection{View3}
-           
-        \subsection{Dependencies Viewpoint}
-        \subsubsection{Viewpoint Stakeholders and Concerns}
-        \subsubsection{Viewpoint Views}
-        \subsubsubsection{View1}
-        \subsubsubsection{View2}
-        \subsubsubsection{View3}
-        
+        \subsubsubsection{User Interface}
         
         \subsection{Interaction Viewpoint}
+        As per the IEEE Std 1006-2009 document standard, the Interaction viewpoint is described as follows: "The Interaction viewpoint defines strategies for interaction among entities, regarding why, where, how, and at what level actions occur."
+        \subsubsection{Viewpoint Stakeholders and Concerns}
+        \subsubsection{Viewpoint Views}
+        \subsubsubsection{Closed Wireless Network Communication via LoRa RFM95}
+        The wireless communication between the hub device and the sensor devices will be a two-way communication system.
+        The network hub device will take packaged instruction sets gathered through input into the user interface, and pass it to the specified sensor device over Long Range (LoRa) radio frequency.
+        Conversely, the sensor devices will package and send their gathered data over the LoRa frequency back to their "home" hub device to be collected and pushed to the Internet for display on the user interface.
+        It was decided that the most fitting wireless communication standard to use between the central hub device and the various sensor devices would be LoRa RFM95, because of its flexibility between signal coverage distance and data transfer rate.\\
+        \subsubsubsection{Internet Accessible Communication via Ethernet}
+        \subsubsubsection{MQTT}
+           
+        \subsection{Dependency Viewpoint}
+        As per the IEEE Std 1006-2009 document standard, the Dependency viewpoint is described as follows: "The Dependency viewpoint specifies
+     the relationships of interconnection and access among entities. These relationships include shared information, order of execution, or parameterization of interfaces."
         \subsubsection{Viewpoint Stakeholders and Concerns}
         \subsubsection{Viewpoint Views}
         \subsubsubsection{View1}
         \subsubsubsection{View2}
         \subsubsubsection{View3}
-        
-        
+            
         \subsection{State Dynamics Viewpoint}
+        As per the IEEE Std 1006-2009 document standard, the State Dynamics viewpoint is described as follows: "Reactive systems and systems whose internal behavior is of interest use this viewpoint."
         \subsubsection{Viewpoint Stakeholders and Concerns}
         \subsubsection{Viewpoint Views}
         \subsubsubsection{View1}
