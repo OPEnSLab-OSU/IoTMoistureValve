@@ -124,7 +124,7 @@
             }
             \begin{abstract}
                 % 6. Fill in your abstract   --- TODO 
-                This document is a .
+                This document is the Progress Report for the Fall 2017 term of the CS461 Capstone course. Discussed in this document is our group's experience with this project so far. It describe the general purpose of the project, includes a weekly breakdown of our time, and provides a short retrospective.
             \end{abstract}     
         \end{singlespace}
     \end{titlepage}
@@ -140,15 +140,15 @@
     \section{Recap of Purpose and Goals}
     The Internet of Things Irrigation Valve project is an open-source, proof of concept project that aims to create an internet-connected, irrigation system control suite.
     The device is being developed with farmers/agriculturists in mind, and is an attempt to design a more sustainable and efficient method of watering specific, targeted plots of land.
-    The current method of irrigation employed by the majority of agriculturists generally relies on either the user physically engaging/disengaging the irrigation valves,
+    The current method of irrigation employed by the majority of agriculturists generally relies on either the user physically engaging/disengaging the irrigation valves, or using a simple ("dumb") timer to do the job for them.
     
-    Both of these solutions require that the users travel to each individual valve if changes are desired.
-    While more complex and advanced systems do exist, at the time of this writing, they are still rather uncommon and are generally expensive.
+    Although a timer does offer a simple form of automation, both of these solutions still require that the users travel to each individual valve if changes are desired.
+    While more advanced systems do already exist, at the time of this writing, they are still rather uncommon and are generally expensive.
     This leads to the primary goals of this project, which are to:
     \begin{enumerate}
     \item create an Internet of Things connected irrigation system. 
     \item expand on the current standard solutions of irrigation, allowing for valve control via time, soil moisture content or both.
-    \item centralize the valve control system to a single, wireless remote location so that users can easily see the state of their various fields, and make informed decisions about best irrigation schemes, without needing to travel to each physical location.
+    \item centralize the valve control system to a single through a single source so that users can easily see the state of their various fields, and make informed decisions about best irrigation schemes, without needing to travel to each physical location.
     \item keep the developed software package open-source, allowing users access to cheaper options than would generally be found.
     \end{enumerate}
 
@@ -163,36 +163,96 @@
     After initial e-mail contact with our client, Chet Udell, we scheduled to meet on Friday afternoon for a simple introduction to the project, and a meet and greet.
     Some discussion happened regarding roles in the project, and the general format of the Problem Statement was laid out.
     \subsection{Week 3}
-    
+    This week was focused on getting oriented with our project. 
+    We began work on the problem statement, a document that proposed the project as a solution to a problem. 
+    To complete this document, we met with our client Chet Udell to talk about specific aspects of our project to better understand the material. 
+    We also were introduced to our new project management tool known as Basecamp.
+    This tool provides calendars, message boards, and to-do lists. 
+    Our client had already assigned each of us some to-do list items to get acquainted with hardware and software tools, which we began to work on. 
     
     \subsection{Week 4}
+    This week we received access to our GitHub repository, which is owned by OPEnS.
+    We sent our teacher access to this repository, and posted our completed individual problem statements. 
+    At this point we had setup a standing meeting with our client from three to four in the afternoon on Tuesdays. 
+    We met with our TA on Wednesday at 12:15. 
+    We discussed the combined problem statement as a group, which we worked on for the rest of the week before submitting on Friday. 
+    
     
     \subsection{Week 5}
-    
+    This week was focused on gathering information for the requirements document.
+    This document would outline exactly what we would produce as a team, and it needed to be detailed and accurate. 
+    We met with our client on Tuesday at 3:00pm, and had a meeting for an hour. 
+    In this meeting we discussed the three pieces of our project, the web application, the communications hub, and the irrigation valve. 
+    We discussed many details such as stretch goals, software tools, and even the types of data flow that will occur in our system. 
+    It was made clear that our end goal is a least viable product, meaning it is a proof of concept project. 
     \subsection{Week 6}
+    Week 6 was aimed at getting our requirements document completed. 
+    However, even with the information we already had, it still wasn't enough to complete the document. 
+    Chet Udell canceled our meeting on Tuesday, so we also didn't have the chance to gather more information.
+    As a team, we worked with what we had available to us at the time, and completed our requirements document in time to submit it by Friday. 
+    The group was somewhat hesitant about whether or not our submission was adequate. 
     
     \subsection{Week 7}
+    This week was a week to catch up on our team's individual to-do list items, since there was not any documents to submit. 
+    Our meeting with our client had brought some more information to light about our requirements document. 
+    Chet Udell informed us that the OPEnS lab follows an "iterative" design process, and therefore he doesn't view our requirements document as being as static as other groups may be. 
+    He assured and encouraged us to be changing our document as the project begins.
+    It was also noted that OPEnS projects are very exploratory, making it difficult to write about a concrete design when the Client isn't even sure yet. 
     
     \subsection{Week 8}
+    Week 8 was a very important week for the team. 
+    Our client meeting on Tuesday was also a Skype meeting with our tertiary client, P\&R Surge Systems. 
+    In this meeting, we introduced ourselves to the company that will use our open source software for their products someday.
+    We then worked with P\&R engineers to figure out how to work their valve.
+    They instructed us how to open it, and we all discussed options for how we will take wireless control of their valve. 
+    P\&R even made suggestions and noted that if we could integrate our system into their existing products, they would be able to upgrade thousands of existing units. 
+    After the meeting, the team discussed ways we can make the system work, and settled on an option. 
+    We also turned in our individual technology reviews, which compared and contrasted our chosen hardware and software with comparable options. 
     
     \subsection{Week 9}
+    This week was short due to Thanksgiving, though we still met with our client on Tuesday. 
+    In this meeting we discussed wrapping up the term, and getting done some high priority to-do list items. 
+    We talked to Chet Udell about our technology documents, and asked him some questions about why he wanted some of the hardware and software tools.
+    He offered some ideas about other options we could use for comparison as well. 
+    For the rest of the week, each of us completed individual to-do list items on our Basecamp page. 
     
     \subsection{Week 10}
+    This week was focused on our extensive design document. 
+    As a group we met to do combined writing on overleaf, which is a group writing tool for LaTeX. 
+    Individual contributions to writing were also posted on github under the student, so that our work can be checked. 
+    This design document covered the design of each of the three portions to the project.
+    Group collaboration was incredibly important for this document because of the clear overlap. 
+    As a group, we discussed and wrote the detailed design of our project parts, making sure to collaborate and ensure our system would work.
+    In addition, we met with our client and talked about project details and concerns.
     
     \section{Problems and Solutions}
-    
-    \section{Interesting Tidbits}
-    
+    The only concern that our group and our client had this term concerned communication. 
+    At the beginning of the term it was more difficult than expected to schedule a standing meeting that worked for everyone, as well as gather every bit of information we needed about the project in an hour.
+    Over the course of the term we worked to correct this, and hasn't been an issue in a long time.    
+    There were also concerns about splitting time between the extensive documents and the actual project work as well.
     \pagebreak
+    
     \section{10 Week Retrospective}
+    Overall, we as a group and as individuals, learned a great deal.
+    We were introduced to our client Chet Udell as well as some of the executives at P\&R surge systems.
+    The project objective is now abundantly clear, and we even have made meaningful strides at coming up with a solid design plan for each individual peace. 
+    Although there were some intial concerns with communication and time budgeting, we have worked hard to correct them and haven't been a problem for weeks. 
+    In addition, through our to-do lists on Basecamp, we were all able to familiarize ourself with hardware and software tools, so that we are ready to get right to work in Winter term.
+    We will begin Winter term with actual coding of our project.
+    
     \vspace{.1in}
     \begin{center}
     \begin{tabular}{| p{0.3\linewidth}| p{0.3\linewidth}| p{0.3\linewidth}|}
+    \hline
     Positives & Deltas & Actions \\
     \hline
     {Had an interesting Skype call with secondary client, P\&R Surge Systems, and were able to talk with them regarding their interest in and thoughts about the project.} & - & - \\
     \hline
-    - & {Some lack of clarity regarding } & - \\
+    {Had a chance to try soldering some pins to an Arduino board, which was a neat experience. Looking forward to more of that for sure! -Chris} & - & - \\
+    \hline
+    - & {Small amount of uncertainty regarding a couple of functionalities and which piece of the project is responsible for what tasks that needs to be clarified.} & {Sit with our client as soon as possible and ensure that our group has a completely clear understanding of the clients expectations.} \\
+    \hline
+    - & {Found out very late in the design process that the type of irrigation system we will be working with functions in such a way that the valve must open in stages, to prevent water from flooding to quickly into the pipe.} & {Hopefully a fairly straight-forward correction. Should only need to add some timing code to start/stop the valve turning with the correct timings.} \\
     %Copy the following two lines and add above to add new row.
     %\hline
     %- & - & - \\
