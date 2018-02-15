@@ -21,6 +21,7 @@ Contact: github@emnet.net or @rinnamon on twitter
 
 
 #include "SDI12.h"
+#include <string.h>
 
 #define DATAPIN 12         // change to the proper pin
 #define SENSOR_ADDRESS '?'
@@ -28,7 +29,11 @@ Contact: github@emnet.net or @rinnamon on twitter
 SDI12 mySDI12(DATAPIN);
 
 String sdiResponse = "";
+String resp_buf = "";
 String myCommand = "";
+char delimit[]="+-"; // Delimiters for responce parsing.
+float VWC, temp;
+int elec;
 
 void setup() {
   Serial.begin(9600);
@@ -63,7 +68,10 @@ void loop() {
 
   delay(1000);                 // delay between taking reading and requesting data
   sdiResponse = "";           // clear the response string
-
+  resp_buf = "";
+  VWC = 99999.9;
+  temp = 99999.9;
+  elec = 99999;
 
 // next command to request data from last measurement
   myCommand = String(SENSOR_ADDRESS) + "D0!";
@@ -79,7 +87,26 @@ void loop() {
       delay(5);
     }
   }
-  if (sdiResponse.length() > 1) Serial.println(sdiResponse); //write the response to the screen
+  if (sdiResponse.length() > 1) {
+    Serial.println(sdiResponse); //write the response to the screen
+
+    char * pch;
+    char * buf = strdup(sdiResponse.c_str());
+    pch = strtok (buf, delimit);// Burn sensor number.
+    
+    pch = strtok (NULL, delimit);  // VWC value
+    VWC = atof(pch);
+    
+    pch = strtok (NULL, delimit);  // Temp value
+    temp = atof(pch);
+        
+    pch = strtok (NULL, delimit);  // ElecCond value
+    elec = atoi(pch);
+  }
+  Serial.print("VWC: "); Serial.print(VWC);
+  Serial.print(" Temp: "); Serial.print(temp);
+  Serial.print(" ElecCond: "); Serial.println(elec);
+  
   mySDI12.clearBuffer();
 
 //now go back to top and wait until user hits enter on terminal window

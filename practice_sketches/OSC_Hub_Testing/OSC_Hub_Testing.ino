@@ -7,8 +7,8 @@
 #define RFM95_RST 4
 #define RFM95_INT 3
 
-#define SERVER_ADDRESS 1
-#define CLIENT_ADDRESS 2 
+#define HUB_ADDRESS 1
+#define RELAY_ADDRESS 2 
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
@@ -16,7 +16,7 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-RHReliableDatagram manager(rf95, SERVER_ADDRESS);
+RHReliableDatagram manager(rf95, HUB_ADDRESS);
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 
 void setup() {
@@ -33,6 +33,8 @@ void setup() {
 
 }
 
+OSCBundle bndl;
+
 void loop() {
   //while (!manager.available());
   if (manager.available()) {
@@ -40,10 +42,9 @@ void loop() {
     uint8_t from;
     memset(buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
     if (manager.recvfromAck(buf, &len, &from)) {
-      OSCBundle bndl;
       get_OSC_bundle((char*)buf, &bndl);
       Serial.print("Received message: ");
-      //Serial.println((char*)buf);
+      Serial.println((char*)buf);
       bndl.send(Serial);
       Serial.println("");
     }
