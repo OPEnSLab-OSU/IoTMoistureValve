@@ -4,6 +4,9 @@
 #include <OSCBundle.h>
 #include "SDI12.h"
 
+#define VALVE_PIN_ROT_OPEN  9 //Near relay
+#define VALVE_PIN_ROT_CLOSE  10 //Far relay
+
 //Pins for data.
 #define DATAPIN 12         
 #define SENSOR_ADDRESS '?' //Needs to change if running multiple sensors on single data-pin.
@@ -17,7 +20,6 @@
 #define HUB_ADDRESS   1
 #define RELAY_ADDRESS 2
 
-//Time unit defines
 #define SECOND    1000
 #define HALF_SEC  500
 #define TENTH_SEC 100
@@ -47,6 +49,10 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 RHReliableDatagram manager(rf95, HUB_ADDRESS);
 
 void setup() {
+  //Setup pins for Valve-control
+  pinMode(VALVE_PIN_ROT_OPEN, OUTPUT);
+  pinMode(VALVE_PIN_ROT_CLOSE, OUTPUT);
+  
   //Serial.print("Setup Mem Top - "); Serial.println(freeMemory());  
   Serial.begin(9600);
   mySDI12.begin(); //Init SDI12 object.
@@ -60,9 +66,8 @@ void setup() {
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
     while (1);
-
-  
   }
+  
 //Serial.print("Setup Mem Bottom - "); Serial.println(freeMemory());
   Serial.println("Setting power...");
   rf95.setTxPower(23, false);
@@ -175,6 +180,8 @@ void loop() {
   Serial.print("Sending...");
   if (manager.sendtoWait((uint8_t*)message, strlen(message), HUB_ADDRESS)){
     Serial.println("ok, listening for reply instructions.");
+
+    
   } else {
     Serial.println("failed");
   }
