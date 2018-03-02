@@ -119,10 +119,11 @@ void loop() {
       }
   
   }
-
+/*
   s_dat.ELEC_COND = 25;
   s_dat.TEMP = 34.5;
   s_dat.VWC = 10.21;
+*/
 
  // Elec_Cond.publish(s_dat.ELEC_COND, DEC);
   if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
@@ -140,8 +141,6 @@ void loop() {
      } else {
         Serial.println(F("OK!"));
      }
-  
-  
   delay(10000);
   if (manager.available()) {
     uint8_t len = sizeof(buf);
