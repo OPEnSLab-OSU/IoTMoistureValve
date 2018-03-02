@@ -58,7 +58,7 @@ void loop() {
 
   Serial.println(freeMemory());
 
-  Serial.print("Line 59 - "); Serial.println(count);
+//  Serial.print("Line 59 - "); Serial.println(count);
   
   bndl.empty();
   
@@ -76,7 +76,7 @@ void loop() {
   Serial.print("Max message length: ");
   Serial.println(RH_RF95_MAX_MESSAGE_LEN);
 
-  Serial.print("Line 77 - "); Serial.println(count);
+//  Serial.print("Line 77 - "); Serial.println(count);
 
   delay(2000);
   
@@ -86,13 +86,13 @@ void loop() {
   else
     Serial.println("failed");
 
-  Serial.print("Line 87 - "); Serial.println(count);
+//  Serial.print("Line 87 - "); Serial.println(count);
     
   Serial.println(freeMemory());
   free(message);
   Serial.println(freeMemory());
-  delay(2000);
+  delay(10000);
 
-  Serial.print("Line 94 - "); Serial.println(count);
+//  Serial.print("Line 94 - "); Serial.println(count);
 }
 

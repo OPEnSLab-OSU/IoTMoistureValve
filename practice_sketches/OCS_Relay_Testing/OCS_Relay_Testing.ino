@@ -36,7 +36,7 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-RHReliableDatagram manager(rf95, HUB_ADDRESS);
+RHReliableDatagram manager(rf95, RELAY_ADDRESS);
 
 void setup() {
   Serial.print("Setup Mem Top - "); Serial.println(freeMemory());  
@@ -94,7 +94,7 @@ void loop() {
   Serial.println(freeMemory());
   free(message);
   Serial.println(freeMemory());
-  delay(20000);
+  delay(5000);
 
   
 }

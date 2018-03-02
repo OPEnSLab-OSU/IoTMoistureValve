@@ -9,10 +9,17 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 
-/* for feather32u4 */
+/* for feather32u4 
 #define RFM95_CS 8
 #define RFM95_RST 4
 #define RFM95_INT 7
+*/
+
+/* for featherM0 */
+#define RFM95_CS 8
+#define RFM95_RST 4
+#define RFM95_INT 3
+
 #define LED_PIN 13
 
 // Change to 434.0 or other frequency, must match RX's freq!
