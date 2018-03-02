@@ -3,6 +3,7 @@
 #include <RHReliableDatagram.h>
 #include <OSCBundle.h>
 #include "SDI12.h"
+//#include <MemoryFree.h>
 
 #define VALVE_PIN_ROT_OPEN  9 //Near relay
 #define VALVE_PIN_ROT_CLOSE  10 //Far relay
@@ -20,12 +21,16 @@
 #define HUB_ADDRESS   1
 #define RELAY_ADDRESS 2
 
+//Time increments
 #define SECOND    1000
 #define HALF_SEC  500
 #define TENTH_SEC 100
 
+//Size of message for LoRa
+#define MSG_SIZE 121
+
 //Delay (spoof wake-up) time.
-#define WAIT 20
+#define WAIT 8
 
 //IDString constructor
 #define STR_HELPER(x) #x
@@ -46,14 +51,20 @@ SDI12 mySDI12(DATAPIN);
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-RHReliableDatagram manager(rf95, HUB_ADDRESS);
+RHReliableDatagram manager(rf95, RELAY_ADDRESS);
 
 void setup() {
+  digitalWrite(RFM95_RST, LOW);
+  delay(10);
+  digitalWrite(RFM95_RST, HIGH);
+  delay(10);
+  
   //Setup pins for Valve-control
   pinMode(VALVE_PIN_ROT_OPEN, OUTPUT);
   pinMode(VALVE_PIN_ROT_CLOSE, OUTPUT);
   
-  //Serial.print("Setup Mem Top - "); Serial.println(freeMemory());  
+  
+  while(!Serial); //Comment or remove when not tethering to PC.
   Serial.begin(9600);
   mySDI12.begin(); //Init SDI12 object.
   delay(2000);
@@ -67,10 +78,17 @@ void setup() {
     Serial.println("setFrequency failed");
     while (1);
   }
-  
-//Serial.print("Setup Mem Bottom - "); Serial.println(freeMemory());
   Serial.println("Setting power...");
   rf95.setTxPower(23, false);
+
+
+  manager.setRetries(10);
+  manager.setTimeout(HALF_SEC);
+
+  Serial.print("Num retries: ");
+  Serial.println(manager.retries());
+
+  //Serial.print("Mem after setup - "); Serial.println(freeMemory());
 }
 
 //Setup for sensor read.
@@ -86,9 +104,17 @@ int count = 0; //Testing loop counter.
 OSCBundle bndl;
 
 void loop() {
+  
+//  Serial.print("freeMemory()=");
+//  Serial.println(freeMemory());
+//
+//  delay(1000);
 
   Serial.print("Beginning run: #"); Serial.println(++count);
-  bndl.empty();
+
+  sdiResponse = "";
+  resp_buf = "";
+  myCommand = "";
 
 //-----------------------------
 //----- Begin sensor read -----
@@ -161,11 +187,21 @@ void loop() {
 
 
   //------ Package read data ------
-  bndl.add(IDString "/VWC").add((float)VWC);
-  bndl.add(IDString "/temp").add((float)temp);
-  bndl.add(IDString "/ElecCond").add((int32_t)elec);
 
-  char *message = get_OSC_string(bndl);
+  bndl.empty();
+  
+  bndl.add(IDString "/VWC").add((float)VWC);
+  Serial.print("Add VWC ");
+  bndl.add(IDString "/temp").add((float)temp);
+  Serial.print("Add Temp ");
+  bndl.add(IDString "/ElecCond").add((int32_t)elec);
+  Serial.println("Add EC");
+  
+  char message[MSG_SIZE];
+
+  memset(message, '\0', MSG_SIZE);
+  
+  get_OSC_string(&bndl, message);
 
   //Serial.println(freeMemory());  
 
@@ -185,11 +221,18 @@ void loop() {
   } else {
     Serial.println("failed");
   }
-    
-  //Serial.println(freeMemory());
-  free(message);
-  //Serial.println(freeMemory());
-  delay(20000);
+  
+//  Serial.print("freeMemory()=");
+//  Serial.println(freeMemory());
+//
+//  delay(1000);
+
+
+  Serial.println("----- END RUN -----";
+  Serial.println();
+  Serial.println();
+  
+  delay(WAIT * SECOND);
 
   
 }
