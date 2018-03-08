@@ -19,7 +19,6 @@
 #define RFM95_RST 4
 #define RFM95_INT 3
 
-
 #define SERVER_ADDRESS 1
 #define CLIENT_ADDRESS 2
 
@@ -30,6 +29,7 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 RHReliableDatagram manager(rf95, SERVER_ADDRESS);
+uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 
 void setup() {
@@ -46,6 +46,8 @@ void setup() {
 
 }
 
+bool valve_status = false;
+
 void loop() {
   // put your main code here, to run repeatedly:
   if (manager.available()) {
@@ -54,9 +56,12 @@ void loop() {
     memset(buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
     if (manager.recvfromAck(buf, &len, &from)) {
       OSCBundle bndl;
-      get_OSC_bundle((char*)buf, &bndl);
-     // Serial.print("Received message: ");
+      OSCBundle reply_bndl;
+      get_OSC_bundle((char*)buf, &bndl);     
+      Serial.print("Received message: ");
       Serial.println((char*)buf);
+
+      get_OSC_bundle(char*)reply_buf, &reply_bndl);
       bndl.send(Serial);
       Serial.println("");
 
