@@ -3,6 +3,7 @@
 #include <RHReliableDatagram.h>
 #include <OSCBundle.h>
 #include "SDI12.h"
+#include <FlashStorage.h>
 //#include <MemoryFree.h>
 
 #define VALVE_PIN_ROT_OPEN  9 //Near relay
@@ -37,14 +38,17 @@
 #define STR(x) STR_HELPER(x) //to concatenate a predefined number to a string literal, use STR(x)
 
 #define FAMILY "/LOOM"
-#define DEVICE "/IrrVal/"
+#define THIS_DEVICE "/IrrVal/"
+#define HUB_DEVICE "/Hub/"
 #define INSTANCE_NUM 0  // Unique instance number for this device, useful when using more than one of the same device type in same space
 
-#define IDString FAMILY DEVICE STR(INSTANCE_NUM) // C interprets subsequent string literals as concatenation: "/Loom" "/Ishield" "0" becomes "/Loom/Ishield0"
+#define MyIDString FAMILY THIS_DEVICE STR(INSTANCE_NUM) // C interprets subsequent string literals as concatenation: "/Loom" "/Ishield" "0" becomes "/Loom/Ishield0"
+#define HubIDString FAMILY HUB_DEVICE STR(INSTANCE_NUM) //
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
 
+//Struct for storage of recieved instructions.
 typedef struct {
   boolean valid;
   float inst_vwc;
@@ -62,6 +66,10 @@ RHReliableDatagram manager(rf95, RELAY_ADDRESS);
 
 uint8_t inst_buf[RH_RF95_MAX_MESSAGE_LEN];
 
+FlashStorage(trigger_flash_store, Trigger_Vals);
+
+Trigger_Vals trig_vals;
+
 void setup() {
   digitalWrite(RFM95_RST, LOW);
   delay(10);
@@ -72,11 +80,28 @@ void setup() {
   pinMode(VALVE_PIN_ROT_OPEN, OUTPUT);
   pinMode(VALVE_PIN_ROT_CLOSE, OUTPUT);
 
-
   while (!Serial); //Comment or remove when not tethering to PC.
   Serial.begin(9600);
   mySDI12.begin(); //Init SDI12 object.
   delay(2000);
+
+  trig_vals = trigger_flash_store.read();
+
+  if (trig_vals.valid == false) {
+    Serial.println("No stored values, setting defaults.");
+
+    trig_vals.inst_vwc = 20.5;
+    trig_vals.inst_time = 99999;
+    trig_vals.inst_mode = 0;
+    trig_vals.valid = true;
+    
+    trigger_flash_store.write(trig_vals);
+  } else {
+    Serial.println("Got stored values -");
+    Serial.print("VWC: "); Serial.print(trig_vals.inst_vwc); Serial.print(" ");
+    Serial.print("Time: "); Serial.print(trig_vals.inst_time); Serial.print(" ");
+    Serial.print("Mode: "); Serial.println(trig_vals.inst_mode);
+  }
 
   Serial.println("Initializing manager...");
   if (!manager.init())
@@ -199,11 +224,11 @@ void loop() {
 
   bndl.empty();
 
-  bndl.add(IDString "/VWC").add((float)VWC);
+  bndl.add(MyIDString "/VWC").add((float)VWC);
   Serial.print("Add VWC ");
-  bndl.add(IDString "/temp").add((float)temp);
+  bndl.add(MyIDString "/temp").add((float)temp);
   Serial.print("Add Temp ");
-  bndl.add(IDString "/ElecCond").add((int32_t)elec);
+  bndl.add(MyIDString "/ElecCond").add((int32_t)elec);
   Serial.println("Add EC");
 
   char message[MSG_SIZE];
@@ -236,9 +261,17 @@ void loop() {
       if (manager.recvfromAck(inst_buf, &len, &from)) {
         OSCBundle inst_bndl;
         get_OSC_bundle((char*)inst_buf, &inst_bndl);
-        Serial.println((char*)inst_buf);
-        inst_bndl.send(Serial);
-        Serial.println("");
+        //Serial.println((char*)inst_buf);
+        //inst_bndl.send(Serial); Serial.println("");
+
+        Serial.print((float)inst_bndl.getOSCMessage(HubIDString "/VWC_Inst")->getFloat(0)); Serial.print(" ");
+        trig_vals.inst_vwc = (float)inst_bndl.getOSCMessage(HubIDString "/VWC_Inst")->getFloat(0);
+        Serial.print((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0)); Serial.print(" ");
+        trig_vals.inst_time = (unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0);
+        Serial.println((int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0));
+        trig_vals.inst_mode = (int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0);
+
+        trigger_flash_store.write(trig_vals);
       }
     }
 
