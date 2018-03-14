@@ -4,8 +4,8 @@
 #include <OSCBundle.h>
 #include "SDI12.h"
 #include <FlashStorage.h>
-//#include <MemoryFree.h>
 
+//For relay shields and valve control.
 #define VALVE_PIN_ROT_OPEN  9 //Near relay
 #define VALVE_PIN_ROT_CLOSE  10 //Far relay
 
@@ -27,11 +27,11 @@
 #define HALF_SEC  500
 #define TENTH_SEC 100
 
-//Size of message for LoRa
-#define MSG_SIZE 121
-
 //Delay (spoof wake-up) time.
 #define WAIT 20
+
+//Size of message for LoRa
+#define MSG_SIZE 121
 
 //IDString constructor
 #define STR_HELPER(x) #x
@@ -70,6 +70,8 @@ FlashStorage(trigger_flash_store, Trigger_Vals);
 
 Trigger_Vals trig_vals;
 
+
+
 void setup() {
   digitalWrite(RFM95_RST, LOW);
   delay(10);
@@ -94,7 +96,7 @@ void setup() {
     trig_vals.inst_time = 99999;
     trig_vals.inst_mode = 0;
     trig_vals.valid = true;
-    
+
     trigger_flash_store.write(trig_vals);
   } else {
     Serial.println("Got stored values -");
@@ -218,26 +220,20 @@ void loop() {
   //------ End sensor read ------
   //-----------------------------
 
-
-
   //------ Package read data ------
-
   bndl.empty();
 
   bndl.add(MyIDString "/VWC").add((float)VWC);
-//  Serial.print("Add VWC ");
+  //  Serial.print("Add VWC ");
   bndl.add(MyIDString "/temp").add((float)temp);
-//  Serial.print("Add Temp ");
+  //  Serial.print("Add Temp ");
   bndl.add(MyIDString "/ElecCond").add((int32_t)elec);
-//  Serial.println("Add EC");
+  //  Serial.println("Add EC");
 
   char message[MSG_SIZE];
 
   memset(message, '\0', MSG_SIZE);
-
   get_OSC_string(&bndl, message);
-
-  //Serial.println(freeMemory());
 
   Serial.println(message);
   Serial.print("Message length: ");
@@ -251,8 +247,8 @@ void loop() {
   if (manager.sendtoWait((uint8_t*)message, strlen(message), HUB_ADDRESS)) {
     Serial.println("ok, listening for reply instructions.");
 
-    unsigned long now = millis();
-    while (!manager.available() && (millis() - now < 1000)) {}
+    unsigned long lora_timer = millis();
+    while (!manager.available() && (millis() - lora_timer < 1000)) {}
 
     if (manager.available()) {
       uint8_t len = sizeof(inst_buf);
@@ -266,29 +262,26 @@ void loop() {
 
         Serial.print((float)inst_bndl.getOSCMessage(HubIDString "/VWC_Inst")->getFloat(0)); Serial.print(" ");
         trig_vals.inst_vwc = (float)inst_bndl.getOSCMessage(HubIDString "/VWC_Inst")->getFloat(0);
+
         Serial.print((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0)); Serial.print(" ");
-        trig_vals.inst_time = (unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0);
+        trig_vals.inst_time = ((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0)) + millis();
+
         Serial.println((int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0));
         trig_vals.inst_mode = (int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0);
 
         trigger_flash_store.write(trig_vals);
+
+        inst_bndl.empty();
       }
     }
-
   } else {
     Serial.println("failed");
   }
 
-  //  Serial.print("freeMemory()=");
-  //  Serial.println(freeMemory());
-  //
-  //  delay(1000);
+  //DEBUG
+  Serial.println("----- END RUN -----\n\n");
 
-
-  Serial.println("----- END RUN -----");
-  Serial.println();
-  Serial.println();
-
+  //TODO Replace with sleep code.
   delay(WAIT * SECOND);
 
 

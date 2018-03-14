@@ -100,8 +100,6 @@ void setup() {
   //delay(1000);
 
   mqtt.subscribe(&onoffbutton);
-
-  MQTT_connect();
 }
 
 uint32_t x = 0;
@@ -118,58 +116,15 @@ soil_data s_dat;
 
 OSCBundle inst_bndl;
 
+Adafruit_MQTT_Subscribe *subscription;
+
 void loop() {
-  // put your main c here, to run repeatedly:l
-  // soil_data f_dat;
+  //TODO This should (hopefully) do nothing.
+  MQTT_connect();
 
-  //MQTT_connect();
-
-  // delay(5 * 1000);
-  //Adafruit_MQTT_Subscribe *subscription;
-  /* while ((subscription = mqtt.readSubscription(1000))) {
-     if (subscription == &onoffbutton) {
-       Serial.print(F("Got: "));
-       Serial.println((char *)onoffbutton.lastread);
-     }
-    if (strcmp((char *)onoffbutton.lastread, "ON") == 0) {
-         digitalWrite(LED, HIGH);
-       }
-    if (strcmp((char *)onoffbutton.lastread, "OFF") == 0) {
-         digitalWrite(LED, LOW);
-       }
-
-    }
-  */
-  /*
-    s_dat.ELEC_COND = 25;
-    s_dat.TEMP = 34.5;
-    s_dat.VWC = 10.21;
-  */
-
-  // Elec_Cond.publish(s_dat.ELEC_COND, DEC);
-  /*  if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
-       Serial.println(F("Failed"));
-       } else {
-          Serial.println(F("Got Elec_Cond"));
-       }
-    if (! Temperature.publish((char *) String(s_dat.TEMP).c_str())) {
-       Serial.println(F("Failed"));
-       } else {
-          Serial.println(F("Got Temp"));
-       }
-    if (! VWC.publish((char *) String(s_dat.VWC).c_str())) {
-       Serial.println(F("Failed"));
-       } else {
-          Serial.println(F("Got VWC"));
-       }
-  */
-  //delay(7000);
-  // Adafruit_MQTT_Subscribe *subscription;
-  Adafruit_MQTT_Subscribe *subscription;
-
-  unsigned long now = millis();
+  unsigned long lora_timer = millis();
   int x = 0;
-  while (!manager.available() && (millis() - now < 10000)) {
+  while (!manager.available() && (millis() - lora_timer < 10000)) {
     x++;
     while ((subscription = mqtt.readSubscription(250))) {
       if (subscription == &onoffbutton) {
@@ -182,9 +137,9 @@ void loop() {
       if (strcmp((char *)onoffbutton.lastread, "OFF") == 0) {
         digitalWrite(LED, LOW);
       }
-
     }
   }
+
   if (manager.available()) {
     uint8_t len = sizeof(buf);
     uint8_t from;
@@ -193,8 +148,8 @@ void loop() {
       OSCBundle bndl;
       get_OSC_bundle((char*)buf, &bndl);
       Serial.println((char*)buf);
-      bndl.send(Serial);
-      Serial.println("");
+      //bndl.send(Serial); //Debug
+      //Serial.println("");
 
 
       //----------------------------------------
@@ -203,14 +158,17 @@ void loop() {
       char inst_mess[MSG_SIZE];
       memset(inst_mess, '\0', MSG_SIZE);
 
+      /* TODO Test values. */
       float inst_VWC = 20.1;
       int32_t inst_timer = 5000;
+      int32_t inst_mode = 0;
 
       inst_bndl.empty();
 
+      // Add desired instructions to bundle. Remember to handle on receiving end. /
       inst_bndl.add(IDString "/VWC_Inst").add((float)inst_VWC);
       inst_bndl.add(IDString "/Time_Inst").add((int32_t) inst_timer);
-      inst_bndl.add(IDString "/Mode_Inst").add((int32_t) 0);
+      inst_bndl.add(IDString "/Mode_Inst").add((int32_t) inst_mode);
 
       get_OSC_string(&inst_bndl, inst_mess);
 
@@ -223,42 +181,34 @@ void loop() {
       //------ End of instruction passing ------
       //----------------------------------------
 
+      //TODO -- Handle data publish retry on fail???
+      Serial.print("[Publishing data] - ");
       //Publish Info to Adafruit.io
+
+      Serial.print("Elec_Cond: ");
       if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
-        Serial.println(F("Failed"));
+        Serial.print(F("Failed "));
       } else {
-        Serial.println(F("Got Elec_Cond"));
+        Serial.print(F("OK "));
       }
+
+      Serial.print("Temp: ");
       if (! Temperature.publish((char *) String(s_dat.TEMP).c_str())) {
-        Serial.println(F("Failed"));
+        Serial.print(F("Failed "));
       } else {
-        Serial.println(F("Got Temp"));
+        Serial.print(F("OK "));
       }
+
+      Serial.print("VWC: ");
       if (! VWC.publish((char *) String(s_dat.VWC).c_str())) {
         Serial.println(F("Failed"));
       } else {
-        Serial.println(F("Got VWC"));
+        Serial.println(F("OK"));
       }
 
+      //DEBUG Newlines between prints.
+      Serial.println("\n\n");
     }
   }
-}
 
-void MQTT_connect() {
-  int8_t ret;
-
-  // Stop if already connected.
-  if (mqtt.connected()) {
-    return;
-  }
-
-  Serial.print("Connecting to MQTT... ");
-
-  while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
-    Serial.println(mqtt.connectErrorString(ret));
-    Serial.println("Retrying MQTT connection in 5 seconds...");
-    mqtt.disconnect();
-    delay(5000);  // wait 5 seconds
-  }
-  Serial.println("MQTT Connected!");
 }
