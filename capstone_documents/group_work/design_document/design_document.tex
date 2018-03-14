@@ -1,0 +1,352 @@
+\documentclass[onecolumn, draftclsnofoot,10pt, compsoc]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{setspace}
+
+%Personal imports
+%\usepackage{cite}
+\newcommand{\subparagraph}{}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+%Change link colors
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black,
+	citecolor=black,
+	filecolor=black,
+	urlcolor=black,
+}
+
+\usepackage{geometry}
+\geometry{textheight=9.5in, textwidth=7in}
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+\titleclass{\subsubsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\newcounter{subsubsubsubsection}[subsubsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\thesubsubsubsubsection{\thesubsubsubsection.\arabic{subsubsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titleformat{\subsubsubsubsection}
+{\normalfont\normalsize\bfseries}{\thesubsubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+	{3.25ex \@plus1ex \@minus.2ex}%
+	{-1em}%
+	{\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+	{3.25ex \@plus1ex \@minus .2ex}%
+	{-1em}%
+	{\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@subsubsubsubsection{5}
+\def\toclevel@paragraph{6}
+\def\toclevel@paragraph{7}
+\def\l@subsubsubsection{\@dottedtocline{4}{11em}{5em}}
+\def\l@subsubsubsubsection{\@dottedtocline{5}{16em}{6em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+
+
+% 1. Fill in these details
+\def \CapstoneTeamName{     Group}
+\def \CapstoneTeamNumber{       35}
+\def \GroupMemberOne{           Christopher Carlsen}
+\def \GroupMemberTwo{           Yizheng Wang}
+\def \GroupMemberThree{         Peter Dorich}
+\def \CapstoneProjectName{      Developing an Internet of Things Irrigation Valve}
+\def \CapstoneSponsorCompany{       OSU \textbar\hspace{.05in} Openly Published Environmental Sensing (OPEnS) Lab}
+\def \CapstoneSponsorPerson{        Chet Udell}
+
+% 2. Uncomment the appropriate line below so that the document type works
+\def \DocType{      %Problem Statement
+	%Requirements Document
+	%Technology Review
+	Design Document
+	%Progress Report
+}
+
+\newcommand{\NameSigPair}[1]{\par
+	\makebox[2.75in][r]{#1} \hfil   \makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill        \makebox[.75in]{\hrulefill}}
+	\par\vspace{-12pt} \textit{\tiny\noindent
+		\makebox[2.75in]{} \hfil        \makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill  \makebox[.75in][r]{Date}}}}
+% 3. If the document is not to be signed, uncomment the RENEWcommand below
+\renewcommand{\NameSigPair}[1]{#1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+	\begin{titlepage}
+		\pagenumbering{gobble}
+		\begin{singlespace}
+			\includegraphics[height=4cm]{coe_v_spot1}
+			\hfill 
+			% 4. If you have a logo, use this include graphics command to put it on the coversheet.
+			%\includegraphics[height=4cm]{CompanyLogo}   
+			\par\vspace{.2in}
+			\centering
+			\scshape{
+				\huge CS461 Capstone \DocType \par
+				{\large\today - Fall Term}\par
+				\vspace{.5in}
+				\textbf{\Huge\CapstoneProjectName}\par
+				\vfill
+				%{\large Prepared for}\par
+				%\Huge \CapstoneSponsorCompany\par
+				%\vspace{10pt}
+				%{\Large\NameSigPair{\CapstoneSponsorPerson}\par}
+				{\large Prepared and issued by }\par
+				Group\CapstoneTeamNumber\par
+				% 5. comment out the line below this one if you do not wish to name your team
+				%\CapstoneTeamName\par 
+				\vspace{5pt}
+				{\Large
+					\NameSigPair{\GroupMemberOne}\par
+					\NameSigPair{\GroupMemberTwo}\par
+					\NameSigPair{\GroupMemberThree}\par
+				}
+				\vspace{20pt}
+			}
+			\begin{abstract}
+				% 6. Fill in your abstract   --- TODO 
+				Contained within is the general design documentation for an Internet of Things controlled irrigation valve, which is being prototyped for the Openly Published Environmental Sensing Lab at Oregon State University.
+				This document will give an in-depth explanation of the various parts of the project, and where necessary, explanations of the purpose and rationale for each.
+			\end{abstract}     
+		\end{singlespace}
+	\end{titlepage}
+	\newpage
+	\pagenumbering{arabic}
+	\tableofcontents
+	% 7. uncomment this (if applicable). Consider adding a page break.
+	%\listoffigures
+	%\listoftables
+	\clearpage
+	
+	% 8. now you write!
+	
+	\section{Introduction}
+	\subsection{Document Scope}
+	This document will cover the design aspects of the Internet of Agriculture soil-moisture controlled valve device project.
+	Organized by viewpoints, each part of the system is analyzed and a detailed design has been drawn out which will guide development and assist future developers with understanding the layout and design goals of this project. 
+	This document will continuously be updated to support an iterative design process that is the chosen design method of the Openly Published Environmental Sensing (OPEnS) lab. 
+	This design document will provide a detailed description of our system in terms of software design, hardware layout, and the relationship between parts of our system.
+	\subsection{Authorship}
+	This document has been prepared by:
+	\begin{itemize}
+		\item Christopher Carlsen - Soil-moisture sensing and valve-control device
+		\item Yizheng Wang - User interface and data management
+		\item Peter Dorich - Central communications hub and data transfer
+	\end{itemize}
+	
+	\subsection{Conformance}
+	This document has been prepared using the IEEE Std 1016-2009 standard. 
+	
+	\section{Design Overview and Description}
+	\subsection{Summary}
+	This section will go over the different designs of our system. 
+	Our system works to connect a web application with a irrigation valve and soil moisture sensors via a communications hub.
+	\subsection{Project Stakeholders}
+	The stakeholders of this project are the Capstone development team, the primary client Chet Udell, and the end user. 
+	P\&R Surge Systems is also involved as a tertiary client, who will potentially utilize the open source code for their irrigation valve in the future. 
+	\subsection{Project Concerns}
+	Since OPEnS utilizes an iterative design process, a major concern is incompatibility between pieces of our project. 
+	It has been assumed, and in many cases confirmed, that our system will be compatible. 
+	However, the iterative design leaves room for issues that may occur, which we can use to slightly alter our design accordingly.
+	
+	Another concern is scalability.
+	Our current design will produce a proof of concept system that only supports the bare minimum of the requirements. 
+	After the project is complete, it may be clear that our system will not work as expected with a large amount of soil moisture sensors and valves, due to overhead. 
+	Any use of the source code after this project should be modified to support a larger system. 
+	\subsection{Project Viewpoints}
+	Contained below will be a breakdown of the different design viewpoints of our project, which will categorically be discussed through the use of the Viewpoints outlined by IEEE Std 1016-2009 document standard.
+	The selected viewpoints used in this document will be:
+	\begin{itemize}
+		\item Composition Viewpoint
+		\item Context Viewpoint
+		\item Interaction Viewpoint
+		\item Dependency Viewpoint
+		\item Hardware Viewpoint
+		\item State Dynamics Viewpoint
+	\end{itemize}
+	A brief summarization of each of these viewpoints will be given at the top of their respective sections.
+	
+	
+	\section{Viewpoint Breakdowns}
+	\subsection{Composition Viewpoint}
+	As per the IEEE Std 1006-2009 document standard, the Composition viewpoint is described as follows: "The Composition viewpoint describes the way the design subject is (recursively) structured into constituent parts and establishes the roles of those parts."
+	\subsubsection{Viewpoint Stakeholders and Concerns}
+	The main stakeholders of this viewpoint will be the project team and their client.
+	As the primary authors and developers of the project, the overall composition of the project has been broken into three primary parts:
+	\begin{itemize}
+		\item User interface for valve-point data display and valve-control parameter establishment.
+		\item Central communications hub device.
+		\item End-point soil-data collection and valve-control device.
+	\end{itemize}
+	The end user stakeholders should have minimal concern over this particular design viewpoint beyond affordability of the end-goal product.
+	\subsubsection{Viewpoint Views}
+	\subsubsubsection{Web application}
+	Web application is the interface to interact with users.
+	It will take input from users, send data to hub, receive data from hub, and display data to users. 
+	It will not communicate with hub directly. We will use Adafruit MQTT broker to help us implement the communication between hub and web application. The user interface of the web application can be divided into four parts:
+	\begin{itemize} 
+		\item Label - Label shows the current valve that user is viewing. It’s a button in the framework, each refer to a sensor or valve. The label is used for user to choose which valve’s data to view.
+		\item Data Panel - Data Panel is under each label. It’s a panel displays all the data collected from Adafruit.io of valves. It includes VWC(Volumetric water content), EC(Soil electrical conductivity), and Temp(Temperature of soil). User can read and make decision for mode setting change based on these data.
+		\item Mode Panel - The purpose of this panel is to show which mode is currently in use for the valve. Also, user can change mode in this panel. It includes the information of current mode: Time, VWC, or both. And three buttons, each refers to one mode. User can click the button to change the mode.
+		\item Input Panel - The purpose of Input Panel is to take input from users. It includes some small input boxes and a push button. The input boxes are except value to take from users, also, it will display the current mode settings. It will change the display of valid input based on the current mode in use. User can ask the application to save the change by clicking the push button. 
+	\end{itemize}
+	The web application will also include a data handler to handle the data that take from users. 
+	\subsubsubsection{Hub Device}
+	All information that travels through our system will go through the hub.
+	Controlling the flow of data becomes immensely important. 
+	The hub will use an existing framework that is used by the OPEnS lab. 
+	This framework currently works to organize all available soil data into a Google spreadsheet via the use of API's and the 32u4 board. 
+	The framework will need to be slightly modified in order to support multiple soil-moisture sensors and valves, as well as support for a different visual layout of our data.
+	
+	Currently, the framework uses an external API called PushingBox, which takes the soil data and inserts it into a Google Spreadsheet in an organized way. 
+	This API will continue to be used, however it has been discussed that the end goal for the data is not the document, but the web application. 
+	This API does not run on real time, but is capable of receiving an update every two minutes. 
+	Within the framework also exists Arduino sketches that allow the information to be pushed to PushingBox where it is logged in a document.
+	This framework is a good start, but it lacks required functionality. 
+	For one, the current web application is deployed through a Google script, but in our implementation, it will be programmed with Java. 
+	This framework's implementation is achieved by editing a Google spreadsheet, but our implementation will use MQTT as broker between the web application and the hub.
+	To enable the feather board for operation, the RH\_RF95.h library must be included. 
+	In addition, the 32u4 Feather board must be setup with the appropriate MAC address, Static IP address, and the PushingBox device ID.
+	
+	\subsubsubsection{Soil-Data Collection and Valve-Control}
+	This piece of the project's design will be the primary form of real-world data collection
+	The gathered data will be passed through decision-making functions that compare it against user-defined parameters, ultimately deciding whether to engage a valve to allow watering.
+	The sensor devices' primary job will be the collection of external data regarding the current volumetric water content (VWC), soil salinity and electrical conductivity of the soil in the immediate surrounding area of an arbitrary valve in the user's field.
+	This device will also serve as the primary real-world actuator of the system, using power relays to control the flow of water for a connected water-valve.
+	
+	\subsection{Context Viewpoint}
+	As per the IEEE Std 1006-2009 document standard, the Context viewpoint is described as follows: "The Context viewpoint depicts services provided by a design subject with reference to an explicit context. That context is defined by reference to actors that include users and other stakeholders, which interact with the  design  subject  in  its  environment."    
+	\subsubsection{Viewpoint Stakeholders and Concerns}
+	The main stakeholders of this viewpoint will be the users of this project. This viewpoint mainly concerns about how will the user interface list the data to users.
+	\subsubsection{Viewpoint Views}
+	\subsubsubsection{User Interface}
+	The purpose of the user interface is to interact with users. In this project, it will display the data of each valve to users on the interface. The data consists with several components:
+	\begin{itemize}
+		\item Data of soil - Data of soil is the data collect by sensors. It includes VWC, Temp, and EC. User can only view it on user interface. It refers to the current status of soil. It will be list in the data panel.
+		\item Mode - Mode includes mode and mode settings. It refers to the control mode of valve. There are three modes, Time, VWC, and both. Mode settings are the trigger values of each mode. They are high VWC value, low VWC value, start time and end time. Mode information will be displayed in the mode panel. While mode settings will be displayed in the input panel.
+	\end{itemize}
+	The data of soil will be automatic updated by web application. Every 15 minutes, the web application call the request functions to pull a request to Adafruit.io with the web API and handle the returned object, which will include the data of soil.
+	\subsection{Interaction Viewpoint}
+	As per the IEEE Std 1006-2009 document standard, the Interaction viewpoint is described as follows: "The Interaction viewpoint defines strategies for interaction among entities, regarding why, where, how, and at what level actions occur."
+	\subsubsection{Viewpoint Stakeholders and Concerns}
+	The stakeholders of this viewpoint will be the project team and their client.
+	This section is of main concern to these stakeholders, as it is the mode through which data is collected and maneuvered in meaningful ways, allowing the user to control the irrigation of their fields from a single remote location.
+	The end user does not have a direct concern in the actual design decisions of this viewpoint, as the data interactions will be a blackbox to them.
+	One potential caveat to this may be that the user, or potential future developers, desire the use of a different communication standard (e.g. 802.11 wireless, etc.)
+	\subsubsection{Viewpoint Views}
+	\subsubsubsection{Closed Wireless Network Communication via LoRa RFM95}
+	The wireless communication between the hub device and the sensor devices will be a two-way communication system.
+	The network hub device will take packaged instruction sets gathered through input into the user interface, and pass it to the specified sensor device over Long Range (LoRa) radio frequency.
+	Conversely, the sensor devices will package and send their gathered data over the LoRa frequency back to their "home" hub device to be collected and pushed to the Internet for display on the user interface.
+	It was decided that the most fitting wireless communication standard to use between the central hub device and the various sensor devices would be LoRa RFM95, because of its flexibility between signal coverage distance and data transfer rate.
+	
+	The data being provided from the valve to the hub is the valve unique ID number, the volumetric water content (VWC), and the state of the valve (open or closed).
+	This amount of data that will be passed between the hub and the various sensor devices will be kept intentionally small in size to decrease data overhead, as the bandwidth LoRa supports is somewhat limited in comparison to other wireless standards.
+	A complete message of data coming from a sensing device will consist of a device ID value, the VWC, and the duration the valve should remain open (if applicable to the selected mode of operation).
+	Coming from the user via the user interface, a data message will contain the target sensor's ID value, the desired mode of operation, desired VWC threshold (if in applicable mode), the desired date and time of activation (if in applicable mode), and the duration the valve should remain open (if in applicable mode).
+	When a valve's settings are being changed by a user on the web application, the hub will take the desired parameters pass them to the target valve via LoRa and Arduino sketches.
+	The sketches will require the frequency of the radios, 915 MHz, and the Adafruit 32u4 feather board library, which will enable the use of the radio.
+	\subsubsubsection{Internet Accessible Communication via Ethernet}
+	After the hub gathers the packet of data from the soil moisture sensors, it will send them to the web application server. 
+	Continuing to use LoRa at this point may not be possible, and it is far more efficient to implement a flow of data between the hub and computer on a network rather than local connection.
+	The Ethernet connection will support a greater overhead of data to allow 
+	In addition, this would allow remote control to be possible through the Internet.
+	This physical connection also saves our development team from implementing things like passwords or authentication schemes. 
+	This portion of the system can be achieved by installing an Ethernet shield to the Adafruit 32u4 board.
+	This shield provides an efficient lane of communications between the web application and the hub.
+	The hub will receive information from the web application that will determine how the valve is controlled. 
+	For instance, one of the control modes relies on volumetric water content. 
+	Therefore, the hub will be transmitting the VWC to the web application, and once the web application confirms that it is beyond the defined threshold, it will send a command to the hub to control the valve. 
+	\subsubsubsection{MQTT}
+	\subsubsubsection{User Interface}
+	The Interface will change based on the operation of the users. 
+	\begin{itemize}
+		\item Users can click the label to select which valve’s data to view. The user interface will repaint based on the selected label.
+		\item  User can change mode by clicking the button beside the mode in the mode panel. Each button refers to one mode: Time, VWC, and both. The input box will change when the mode changes by repainting the UI. Each input box will have its own ID. It will use the current mode to decide which input box will be displayed on the interface.
+		\item User can input anything in the input box, but nothing will happen unless he clicks the push button in the input panel. If users click push button beside the input, there will be a message to show if it passed the error check and saved or failed. Web application will pull a request to Adafruit.io with the user inputs by using the supported web API. It will return a status code for web application to check it to make sure the request works. 
+	\end{itemize}
+	
+	%  \subsection{Dependency Viewpoint}
+	%  As per the IEEE Std 1006-2009 document standard, the Dependency viewpoint is described as follows: "The Dependency viewpoint specifies
+	%the relationships of interconnection and access among entities. These relationships include shared information, order of execution, or parameterization of interfaces."
+	%  \subsubsection{Viewpoint Stakeholders and Concerns}
+	% \subsubsection{Viewpoint Views}
+	%\subsubsubsection{View1}
+	% \subsubsubsection{View2}
+	% \subsubsubsection{View3}
+	
+	\subsection{Hardware Viewpoint}
+	Not part of the IEEE std 1006-2009 document standard, but is an essential part of our project.
+	This section will describe hardware design for our micro-controllers, and how they will be setup. 
+	\subsubsection{Viewpoint Stakeholders and Concerns}
+	The stakeholders for this viewpoint are the development team and the client.
+	While it is important for a user to be able to use our hardware, the functionality is minimal and is only required to be plugged in. 
+	That being said, the user is not a specific stakeholder in this section.
+	
+	\subsubsection{Viewpoint Views}
+	\subsubsubsection{Communication Hub Micro-controller}
+	The Adafruit 32u4 with long range radio will, firstly, require a power source to be powered on. 
+	Since this device will act as in intermediary between the computer and the irrigation valves, it will need be located inside a building within a range of two to 26 kilometers from the field. 
+	With that in mind, it is far easier to implement a power supply that can draw electricity from the building, rather than a battery. 
+	Since the Adafruit 32u4 with LoRa requires five volts to run, we will use a five volt power supply that can plug into a wall socket. 
+	This implementation is ideal because the wireless hub will rarely have to be serviced. 
+	The five volt port is a micro-USB type B, and comes attached to the board.
+	The next thing that needs to be implemented on this board is the Ethernet shield.
+	This shield will allow connection between the system and the computer. 
+	
+	To improve our LoRa connection, a small antenna will be soldered onto the control board that will diminish the effects of Biomass blocking the signal.
+	An important design constraint relates to memory.
+	If the hub code is stored directly on the Adafruit 32u4, then if it were to power down unexpectedly, the volatile memory would disappear. 
+	The OPEnS lab will provide software that saves all memory in non-volatile form.
+	This library will be implemented in our design so that no data or code will be deleted.
+	
+	
+	\subsection{State Dynamics Viewpoint}
+	As per the IEEE Std 1006-2009 document standard, the State Dynamics viewpoint is described as follows: "Reactive systems and systems whose internal behavior is of interest use this viewpoint."
+	\subsubsection{Viewpoint Stakeholders and Concerns}
+	The primary stakeholders of this section involve almost exclusively the design team.
+	The concerns of this viewpoint specifically pertain to the reaction of the sensing and valve control device to specific trigger points.
+	These trigger points will be established by the end user through the user interface, and stored directly on the valve control devices themselves.
+	\subsubsection{Viewpoint Views}
+	\subsubsubsection{Soil-Data Collection and Valve-Control Device}
+	The sensor and valve control device will have three modes of operation, which determine when the connected valve will be either engaged or disengaged.
+	The modes will be:
+	\begin{itemize}
+		\item VWC mode - This mode's trigger-events will be based on the current volumetric water content of the soil directly surrounding the sensing device.
+		\item Schedule mode - This mode, rather than taking the VWC into account, will simply follow a user-defined schedule (e.g. water for 20 minutes at 12:30am every other day).
+		\item Combined mode - As the name would suggest, this mode simply combines the trigger-events of the previous two modes (e.g. it only waters on a certain schedule, when the VWC is below a certain threshold).
+	\end{itemize}
+	The trigger events for these different modes, as previously documented, will be set by the user via the user interface.
+	Each separate sensor device will have the capacity to function in any of the three modes, separate from any of the other devices within the network.
+	The design rationale for this is such that an agriculturalist could set one of their fields to be watered using one mode, while simultaneously using another mode to water another.
+	%-----------------
+	%Simple Glossary of terms
+	\pagebreak
+	\section{Glossary of terms}
+	
+	%-----------------
+	\pagebreak
+	\nocite{*} %TODO - Remove this if citing things.
+	\bibliographystyle{IEEEtran}
+	\bibliography{references}    
+	
+\end{document}
