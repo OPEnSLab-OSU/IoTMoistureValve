@@ -78,8 +78,8 @@ Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNA
 
 void setup() {
   Serial.begin(9600);
-  while(!Serial);
-  
+  while (!Serial);
+
   //manual reset
   digitalWrite(RFM95_RST, LOW);
   delay(10);
@@ -222,25 +222,28 @@ void loop() {
       //----------------------------------------
       //------ End of instruction passing ------
       //----------------------------------------
+
+      //Publish Info to Adafruit.io
+      if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
+        Serial.println(F("Failed"));
+      } else {
+        Serial.println(F("Got Elec_Cond"));
+      }
+      if (! Temperature.publish((char *) String(s_dat.TEMP).c_str())) {
+        Serial.println(F("Failed"));
+      } else {
+        Serial.println(F("Got Temp"));
+      }
+      if (! VWC.publish((char *) String(s_dat.VWC).c_str())) {
+        Serial.println(F("Failed"));
+      } else {
+        Serial.println(F("Got VWC"));
+      }
+
     }
   }
-  //Publish Info to Adafruit.io
-  if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
-    Serial.println(F("Failed"));
-  } else {
-    Serial.println(F("Got Elec_Cond"));
-  }
-  if (! Temperature.publish((char *) String(s_dat.TEMP).c_str())) {
-    Serial.println(F("Failed"));
-  } else {
-    Serial.println(F("Got Temp"));
-  }
-  if (! VWC.publish((char *) String(s_dat.VWC).c_str())) {
-    Serial.println(F("Failed"));
-  } else {
-    Serial.println(F("Got VWC"));
-  }
 }
+
 void MQTT_connect() {
   int8_t ret;
 

@@ -31,7 +31,7 @@
 #define MSG_SIZE 121
 
 //Delay (spoof wake-up) time.
-#define WAIT 8
+#define WAIT 20
 
 //IDString constructor
 #define STR_HELPER(x) #x
@@ -156,7 +156,7 @@ void loop() {
 
   //first command to take a measurement
   myCommand = String(SENSOR_ADDRESS) + "M!";
-  Serial.println(myCommand);     // echo command to terminal
+  Serial.print(myCommand); Serial.print(": ");    // echo command to terminal
 
   mySDI12.sendCommand(myCommand);
   delay(30);                     // wait a while for a response
@@ -181,7 +181,7 @@ void loop() {
 
   // next command to request data from last measurement
   myCommand = String(SENSOR_ADDRESS) + "D0!";
-  Serial.println(myCommand);  // echo command to terminal
+  Serial.print(myCommand); Serial.print(": "); // echo command to terminal
 
   mySDI12.sendCommand(myCommand);
   delay(30);                     // wait a while for a response
@@ -225,11 +225,11 @@ void loop() {
   bndl.empty();
 
   bndl.add(MyIDString "/VWC").add((float)VWC);
-  Serial.print("Add VWC ");
+//  Serial.print("Add VWC ");
   bndl.add(MyIDString "/temp").add((float)temp);
-  Serial.print("Add Temp ");
+//  Serial.print("Add Temp ");
   bndl.add(MyIDString "/ElecCond").add((int32_t)elec);
-  Serial.println("Add EC");
+//  Serial.println("Add EC");
 
   char message[MSG_SIZE];
 
