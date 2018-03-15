@@ -6,8 +6,8 @@
 #include <FlashStorage.h>
 
 //For relay shields and valve control.
-#define VALVE_PIN_ROT_OPEN  9 //Near relay
-#define VALVE_PIN_ROT_CLOSE  10 //Far relay
+#define VALVE_PIN_ROT_OPEN  10 //Near relay
+#define VALVE_PIN_ROT_CLOSE  11 //Far relay
 
 //Pins for data.
 #define DATAPIN 12
@@ -43,7 +43,7 @@
 #define INSTANCE_NUM 0  // Unique instance number for this device, useful when using more than one of the same device type in same space
 
 #define MyIDString FAMILY THIS_DEVICE STR(INSTANCE_NUM) // C interprets subsequent string literals as concatenation: "/Loom" "/Ishield" "0" becomes "/Loom/Ishield0"
-#define HubIDString FAMILY HUB_DEVICE STR(INSTANCE_NUM) //
+#define HubIDString FAMILY HUB_DEVICE STR(INSTANCE_NUM) // To read from Hub.
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
@@ -93,7 +93,7 @@ void setup() {
     Serial.println("No stored values, setting defaults.");
 
     trig_vals.inst_vwc = 20.5;
-    trig_vals.inst_time = 99999;
+    trig_vals.inst_time = 5000;
     trig_vals.inst_mode = 0;
     trig_vals.valid = true;
 
@@ -250,6 +250,8 @@ void loop() {
     unsigned long lora_timer = millis();
     while (!manager.available() && (millis() - lora_timer < 1000)) {}
 
+
+    //TODO ADD TYPE CHECKING FOR RECIEVED.
     if (manager.available()) {
       uint8_t len = sizeof(inst_buf);
       uint8_t from;
@@ -264,7 +266,7 @@ void loop() {
         trig_vals.inst_vwc = (float)inst_bndl.getOSCMessage(HubIDString "/VWC_Inst")->getFloat(0);
 
         Serial.print((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0)); Serial.print(" ");
-        trig_vals.inst_time = ((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0)) + millis();
+        trig_vals.inst_time = ((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0));
 
         Serial.println((int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0));
         trig_vals.inst_mode = (int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0);
@@ -278,11 +280,23 @@ void loop() {
     Serial.println("failed");
   }
 
+  Serial.print("Timer set to: "); Serial.println(trig_vals.inst_time);
+
   //DEBUG
   Serial.println("----- END RUN -----\n\n");
 
+
+
+  if (trig_vals.inst_time != 0) {
+    valve_open();
+    delay(trig_vals.inst_time);
+    trig_vals.inst_time = 0;
+    trigger_flash_store.write(trig_vals);
+    valve_close();
+    delay(200);
+  }
+
   //TODO Replace with sleep code.
   delay(WAIT * SECOND);
-
 
 }

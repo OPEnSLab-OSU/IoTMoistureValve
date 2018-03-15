@@ -1,6 +1,6 @@
 //PIN consts
 const int LED_PIN = 13;
-const int RELAY_PIN = 9;
+const int RELAY_PIN = 11;
 
 //Time consts
 const int TENTH_SEC = 100;
@@ -14,8 +14,8 @@ void setup() {
 void loop() {
     digitalWrite(RELAY_PIN, HIGH);
     digitalWrite(LED_PIN, HIGH);
-    delay(60*ONE_SECOND);
+    delay(5*ONE_SECOND);
     digitalWrite(RELAY_PIN, LOW);
     digitalWrite(LED_PIN, LOW);    
-    delay(60*ONE_SECOND);
+    delay(5*ONE_SECOND);
 }

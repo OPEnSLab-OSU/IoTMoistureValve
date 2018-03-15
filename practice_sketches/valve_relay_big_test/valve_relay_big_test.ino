@@ -1,5 +1,5 @@
-#define VALVE_PIN_ROT_OPEN  9 //Near relay
-#define VALVE_PIN_ROT_CLOSE  10 //Far relay
+#define VALVE_PIN_ROT_OPEN  10 //Near relay
+#define VALVE_PIN_ROT_CLOSE  11 //Far relay
 
 //Time unit defines
 #define SECOND    1000
