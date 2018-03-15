@@ -59,6 +59,7 @@ Adafruit_MQTT_Publish Elec_Cond = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/f
 Adafruit_MQTT_Publish Temperature = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.temp");
 Adafruit_MQTT_Publish VWC = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vwc");
 Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.on-off");
+Adafruit_MQTT_Subscribe txtbox = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.txtbox");
 
 
 
@@ -85,7 +86,8 @@ void setup() {
   //delay(1000);
 
   mqtt.subscribe(&onoffbutton);
-
+  mqtt.subscribe($txtbox);
+  
   MQTT_connect();
 }
 
@@ -153,14 +155,14 @@ void loop() {
   while(!manager.available() && x < 1000000){
     x++;
     while ((subscription = mqtt.readSubscription(250))) {
-    if (subscription == &onoffbutton) {
+    if (subscription == &txtbox) {
       Serial.print(F("Got: "));
-      Serial.println((char *)onoffbutton.lastread);
+      Serial.println((char *)txtbox.lastread);
     }
-  if (strcmp((char *)onoffbutton.lastread, "ON") == 0) {
+  if (strcmp((char *)txtbox.lastread, "ON") == 0) {
         digitalWrite(LED, HIGH); 
       }
-  if (strcmp((char *)onoffbutton.lastread, "OFF") == 0) {
+  if (strcmp((char *)txtbox.lastread, "OFF") == 0) {
         digitalWrite(LED, LOW); 
       }
   
