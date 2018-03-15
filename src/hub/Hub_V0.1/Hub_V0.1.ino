@@ -85,6 +85,8 @@ void setup() {
   //delay(1000);
 
   mqtt.subscribe(&onoffbutton);
+
+  MQTT_connect();
 }
 
 uint32_t x=0;
@@ -98,15 +100,15 @@ struct soil_data
 };
 
 soil_data s_dat;
-
 void loop() {
-  // put your main c here, to run repeatedly:
+  // put your main c here, to run repeatedly:l
  // soil_data f_dat;
+ 
+ //MQTT_connect();
   
-  MQTT_connect();
  // delay(5 * 1000);
-  Adafruit_MQTT_Subscribe *subscription;
-  while ((subscription = mqtt.readSubscription(1000))) {
+  //Adafruit_MQTT_Subscribe *subscription;
+ /* while ((subscription = mqtt.readSubscription(1000))) {
     if (subscription == &onoffbutton) {
       Serial.print(F("Got: "));
       Serial.println((char *)onoffbutton.lastread);
@@ -119,6 +121,7 @@ void loop() {
       }
   
   }
+  */
 /*
   s_dat.ELEC_COND = 25;
   s_dat.TEMP = 34.5;
@@ -126,23 +129,44 @@ void loop() {
 */
 
  // Elec_Cond.publish(s_dat.ELEC_COND, DEC);
-  if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
+/*  if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
      Serial.println(F("Failed"));
      } else {
-        Serial.println(F("OK!"));
+        Serial.println(F("Got Elec_Cond"));
      }
   if (! Temperature.publish((char *) String(s_dat.TEMP).c_str())) {
      Serial.println(F("Failed"));
      } else {
-        Serial.println(F("OK!"));
+        Serial.println(F("Got Temp"));
      }
   if (! VWC.publish((char *) String(s_dat.VWC).c_str())) {
      Serial.println(F("Failed"));
      } else {
-        Serial.println(F("OK!"));
+        Serial.println(F("Got VWC"));
      }
-  delay(10000);
-  if (manager.available()) {
+  */   
+  //delay(7000);
+ // Adafruit_MQTT_Subscribe *subscription;
+  Adafruit_MQTT_Subscribe *subscription;
+
+  int x = 0;
+  while(!manager.available() && x < 1000000){
+    x++;
+    while ((subscription = mqtt.readSubscription(250))) {
+    if (subscription == &onoffbutton) {
+      Serial.print(F("Got: "));
+      Serial.println((char *)onoffbutton.lastread);
+    }
+  if (strcmp((char *)onoffbutton.lastread, "ON") == 0) {
+        digitalWrite(LED, HIGH); 
+      }
+  if (strcmp((char *)onoffbutton.lastread, "OFF") == 0) {
+        digitalWrite(LED, LOW); 
+      }
+  
+  }
+  }
+  if(manager.available()) {   
     uint8_t len = sizeof(buf);
     uint8_t from;
     memset(buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
@@ -153,7 +177,23 @@ void loop() {
       bndl.send(Serial);
       Serial.println("");
     }
-  }
+  } 
+  //Publish Info to Adafruit.io
+  if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
+     Serial.println(F("Failed"));
+     } else {
+        Serial.println(F("Got Elec_Cond"));
+     }
+  if (! Temperature.publish((char *) String(s_dat.TEMP).c_str())) {
+     Serial.println(F("Failed"));
+     } else {
+        Serial.println(F("Got Temp"));
+     }
+  if (! VWC.publish((char *) String(s_dat.VWC).c_str())) {
+     Serial.println(F("Failed"));
+     } else {
+        Serial.println(F("Got VWC"));
+     }
 }
 void MQTT_connect() {
   int8_t ret;
