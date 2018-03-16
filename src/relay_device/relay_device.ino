@@ -51,9 +51,11 @@
 //Struct for storage of recieved instructions.
 typedef struct {
   boolean valid;
-  float inst_vwc;
-  unsigned long inst_time;
-  int inst_mode;
+  int32_t mode;
+  float vwc_low;
+  float vwc_high;
+  unsigned long start;
+  unsigned long dur;
 } Trigger_Vals;
 
 //Setup Pin-read
@@ -69,8 +71,6 @@ uint8_t inst_buf[RH_RF95_MAX_MESSAGE_LEN];
 FlashStorage(trigger_flash_store, Trigger_Vals);
 
 Trigger_Vals trig_vals;
-
-
 
 void setup() {
   digitalWrite(RFM95_RST, LOW);
@@ -92,17 +92,29 @@ void setup() {
   if (trig_vals.valid == false) {
     Serial.println("No stored values, setting defaults.");
 
-    trig_vals.inst_vwc = 20.5;
-    trig_vals.inst_time = 5000;
-    trig_vals.inst_mode = 0;
+    int mode;
+    float vwc_low;
+    float vwc_high;
+    unsigned long start;
+    unsigned long dur;
+
+    //DEBUG
+    trig_vals.mode = 0;
+    trig_vals.vwc_low = 10.15;
+    trig_vals.vwc_high = 25.53;
+    trig_vals.start = 10;
+    trig_vals.dur = 10;
     trig_vals.valid = true;
 
     trigger_flash_store.write(trig_vals);
+
   } else {
     Serial.println("Got stored values -");
-    Serial.print("VWC: "); Serial.print(trig_vals.inst_vwc); Serial.print(" ");
-    Serial.print("Time: "); Serial.print(trig_vals.inst_time); Serial.print(" ");
-    Serial.print("Mode: "); Serial.println(trig_vals.inst_mode);
+    Serial.print("Mode: "); Serial.print(trig_vals.mode); Serial.print(" ");
+    Serial.print("VWC Lower: "); Serial.print(trig_vals.vwc_low); Serial.print(" ");
+    Serial.print("VWC Upper: "); Serial.print(trig_vals.vwc_high); Serial.print(" ");
+    Serial.print("Start Time: "); Serial.print(trig_vals.start); Serial.print(" ");
+    Serial.print("Duration: "); Serial.println(trig_vals.dur);
   }
 
   Serial.println("Initializing manager...");
@@ -121,17 +133,16 @@ void setup() {
   manager.setRetries(10);
   manager.setTimeout(HALF_SEC);
 
-  Serial.print("Num retries: ");
-  Serial.println(manager.retries());
-
-  //Serial.print("Mem after setup - "); Serial.println(freeMemory());
+  Serial.print("Num retries: "); Serial.print(manager.retries()); Serial.print(" for ");
+  Serial.print(HALF_SEC); Serial.println("ms per try.");
+  Serial.println("---- End setup. ---- \n\n");
 }
 
 //Setup for sensor read.
 String sdiResponse = "";
 String resp_buf = "";
 String myCommand = "";
-char delimit[] = "+-"; // Delimiters for responce parsing.
+char delimit[] = "+-"; // Delimiters for response parsing.
 float VWC, temp;
 int elec;
 
@@ -141,12 +152,8 @@ OSCBundle bndl;
 
 void loop() {
 
-  //  Serial.print("freeMemory()=");
-  //  Serial.println(freeMemory());
-  //
-  //  delay(1000);
-
-  Serial.print("Beginning run: #"); Serial.println(++count);
+  Serial.println("----- BEGIN RUN -----");
+  Serial.print("Run: #"); Serial.println(++count);
 
   sdiResponse = "";
   resp_buf = "";
@@ -156,37 +163,43 @@ void loop() {
   //----- Begin sensor read -----
   //-----------------------------
 
-  //first command to take a measurement
+  //Take a measurement
   myCommand = String(SENSOR_ADDRESS) + "M!";
-  Serial.print(myCommand); Serial.print(": ");    // echo command to terminal
+  Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
 
   mySDI12.sendCommand(myCommand);
-  delay(30);                     // wait a while for a response
+  delay(30); // wait a while for a response
 
-  while (mySDI12.available()) {  // build response string
+  // build response string
+  while (mySDI12.available()) {
     char c = mySDI12.read();
     if ((c != '\n') && (c != '\r')) {
       sdiResponse += c;
       delay(5);
     }
   }
-  if (sdiResponse.length() > 1) Serial.println(sdiResponse); //write the response to the screen
+  if (sdiResponse.length() > 1)
+    Serial.println(sdiResponse); //write the response to the screen
   mySDI12.clearBuffer();
 
 
-  delay(1000);                 // delay between taking reading and requesting data
-  sdiResponse = "";           // clear the response string
+  delay(1000); // delay between taking reading and requesting data
+
+  //Clear bufs
+  sdiResponse = ""; // clear the response string
   resp_buf = "";
+
+  //Set garbage values.
   VWC = 99999.9;
   temp = 99999.9;
   elec = 99999;
 
-  // next command to request data from last measurement
+  //Request data from last measurement
   myCommand = String(SENSOR_ADDRESS) + "D0!";
-  Serial.print(myCommand); Serial.print(": "); // echo command to terminal
+  Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
 
   mySDI12.sendCommand(myCommand);
-  delay(30);                     // wait a while for a response
+  delay(30); // wait a while for a response
 
   while (mySDI12.available()) {  // build string from response
     char c = mySDI12.read();
@@ -195,6 +208,7 @@ void loop() {
       delay(5);
     }
   }
+  
   if (sdiResponse.length() > 1) {
     Serial.println(sdiResponse); //write the response to the screen
 
@@ -236,12 +250,10 @@ void loop() {
   get_OSC_string(&bndl, message);
 
   Serial.println(message);
-  Serial.print("Message length: ");
-  Serial.println(strlen(message));
-  Serial.print("Max message length: ");
-  Serial.println(RH_RF95_MAX_MESSAGE_LEN);
+  Serial.print("Message length: "); Serial.println(strlen(message));
+  Serial.print("Max message length: "); Serial.println(RH_RF95_MAX_MESSAGE_LEN);
 
-  delay(2000);
+  //delay(2000);
 
   Serial.print("Sending...");
   if (manager.sendtoWait((uint8_t*)message, strlen(message), HUB_ADDRESS)) {
@@ -254,49 +266,69 @@ void loop() {
     //TODO ADD TYPE CHECKING FOR RECIEVED.
     if (manager.available()) {
       uint8_t len = sizeof(inst_buf);
+      //Serial.println(len); //DEBUG
       uint8_t from;
       memset(inst_buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
+
       if (manager.recvfromAck(inst_buf, &len, &from)) {
-        OSCBundle inst_bndl;
-        get_OSC_bundle((char*)inst_buf, &inst_bndl);
-        //Serial.println((char*)inst_buf);
-        //inst_bndl.send(Serial); Serial.println("");
 
-        Serial.print((float)inst_bndl.getOSCMessage(HubIDString "/VWC_Inst")->getFloat(0)); Serial.print(" ");
-        trig_vals.inst_vwc = (float)inst_bndl.getOSCMessage(HubIDString "/VWC_Inst")->getFloat(0);
+        //DEBUG
+        Serial.println((char*) inst_buf);
 
-        Serial.print((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0)); Serial.print(" ");
-        trig_vals.inst_time = ((unsigned long)inst_bndl.getOSCMessage(HubIDString "/Time_Inst")->getInt(0));
+        //OSCBundle inst_bndl;
 
-        Serial.println((int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0));
-        trig_vals.inst_mode = (int)inst_bndl.getOSCMessage(HubIDString "/Mode_Inst")->getInt(0);
+        //bndl.empty();
+
+        get_OSC_bundle((char*)inst_buf, &bndl);
+
+        //TODO Change from hardcoded to While loop.
+        Serial.print((int32_t)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0)); Serial.print(" ");
+        trig_vals.mode = (int32_t)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0);
+
+        Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0)); Serial.print(" ");
+        trig_vals.vwc_low = (float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0);
+
+        Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0)); Serial.print(" ");
+        trig_vals.vwc_high = (float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0);
+
+        Serial.print((int32_t)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0)); Serial.print(" ");
+        trig_vals.start = ((unsigned long)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0));
+
+        Serial.println((int32_t)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
+        trig_vals.dur = ((unsigned long)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
 
         trigger_flash_store.write(trig_vals);
 
-        inst_bndl.empty();
+        //DEBUG Close valve.
+
+        //inst_bndl.empty();
       }
     }
   } else {
     Serial.println("failed");
   }
 
-  Serial.print("Timer set to: "); Serial.println(trig_vals.inst_time);
-
   //DEBUG
-  Serial.println("----- END RUN -----\n\n");
+  Serial.print("Stored instructions: ");
+  Serial.print(trig_vals.mode); Serial.print(" ");
+  Serial.print(trig_vals.vwc_low); Serial.print(" ");
+  Serial.print(trig_vals.vwc_high); Serial.print(" ");
+  Serial.print(trig_vals.start); Serial.print(" ");
+  Serial.println(trig_vals.dur);
 
-
-
-  if (trig_vals.inst_time != 0) {
-    valve_open();
-    delay(trig_vals.inst_time);
-    trig_vals.inst_time = 0;
-    trigger_flash_store.write(trig_vals);
-    valve_close();
-    delay(200);
-  }
+//  if (trig_vals.inst_time != 0) {
+//    valve_open();
+//    delay(trig_vals.inst_time);
+//    trig_vals.inst_time = 0;
+//    trigger_flash_store.write(trig_vals);
+//    valve_close();
+//    delay(200);
+//  }
 
   //TODO Replace with sleep code.
+  Serial.print("Waiting for "); Serial.print(WAIT); Serial.println(" seconds.");
+  Serial.println("----- END RUN -----\n\n");
   delay(WAIT * SECOND);
+
 
 }
