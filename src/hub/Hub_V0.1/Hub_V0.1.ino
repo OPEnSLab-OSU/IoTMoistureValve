@@ -28,8 +28,8 @@
 #include <Dns.h>
 #include <Dhcp.h>
 
-#define HUB_ADDRESS 1
-#define RELAY_ADDRESS 2
+#define HUB_ADDRESS 30
+#define RELAY_ADDRESS 31
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
@@ -76,6 +76,7 @@ Adafruit_MQTT_Publish Temperature = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "
 Adafruit_MQTT_Publish VWC = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vwc");
 //Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.on-off");
 Adafruit_MQTT_Subscribe txtbox = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.txtbox");
+Adafruit_MQTT_Publish VBAT = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vbat");
 
 void setup() {
   Serial.begin(9600);
@@ -111,16 +112,23 @@ struct soil_data
   float VWC;
   float TEMP;
   uint32_t ELEC_COND;
+  float VBAT;
 
 };
 
-      soil_data s_dat;
+struct inst_data
+{
       float inst_VWC_low = 0;
       float inst_VWC_high = 0;
       int32_t inst_start = 0;
       int32_t inst_dur = 0;
       int32_t inst_mode = 0;
 
+};
+    soil_data s_dat;
+    inst_data i_dat;
+
+int flag = 0;
 OSCBundle inst_bndl;
 
 Adafruit_MQTT_Subscribe *subscription;
@@ -131,33 +139,28 @@ void loop() {
 
   unsigned long lora_timer = millis();
   int x = 0;
-  while (!manager.available() && (millis() - lora_timer < 10000)) {
+  while (!manager.available() && (millis() - lora_timer < 10000)) 
+  {
     x++;
-    while ((subscription = mqtt.readSubscription(250))) {
-      if (subscription == &txtbox) {
+    while ((subscription = mqtt.readSubscription(250))) 
+    {
+      if (subscription == &txtbox)
+      {
         Serial.print(F("Got: "));
         Serial.println((char *)txtbox.lastread);
-    /*    inst_mode = (float)inst_bndl.getOSCMessage(RelayIDString "/mode_inst")->getInt(0);
-        inst_dur = (int32_t)inst_bndl.getOSCMessage(RelayIDString "/inst_dur")->getInt(0);
-        inst_start = (int32_t)inst_bndl.getOSCMessage(RelayIDString "/inst_start")->getInt(0);
-     */ 
+        get_inst_data((char *)txtbox.lastread);
       }
-    //  if (strcmp((char *)txtbox.lastread, "2000") == 0) {
-    //    digitalWrite(LED, HIGH);
-    //  }
-    //  if (strcmp((char *)txtbox.lastread, "OFF") == 0) {
-    //    digitalWrite(LED, LOW);
-        
-    //  }
-      
     }
   }
-
-  if (manager.available()) {
+  Serial.println("I'm Looping");
+  if (manager.available()) 
+  {
+    Serial.println("Inside Manager.available");
     uint8_t len = sizeof(buf);
     uint8_t from;
     memset(buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
-    if (manager.recvfromAck(buf, &len, &from)) {
+    if (manager.recvfromAck(buf, &len, &from)) 
+    {
       OSCBundle bndl;
       get_OSC_bundle((char*)buf, &bndl);
       Serial.println((char*)buf);
@@ -178,17 +181,13 @@ void loop() {
       inst_bndl.empty();
 
       // Add desired instructions to bundle. Remember to handle on receiving end. /
-      
-      inst_mode = 1;
-      inst_start = 2000;
-      inst_dur = 20000;
-      
-      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) inst_mode);
-      inst_bndl.add(MYIDString "/vwc_low_inst").add((float)inst_VWC_low);
-      inst_bndl.add(MYIDString "/vwc_high_inst").add((float)inst_VWC_high);
-      inst_bndl.add(MYIDString "/start_inst").add((int32_t) inst_start);
-      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) inst_dur);
-      
+      //Build Instruction Bundle for the Relay
+      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) i_dat.inst_mode);
+      inst_bndl.add(MYIDString "/vwc_low_inst").add((float)i_dat.inst_VWC_low);
+      inst_bndl.add(MYIDString "/vwc_high_inst").add((float)i_dat.inst_VWC_high);
+      inst_bndl.add(MYIDString "/start_inst").add((int32_t) i_dat.inst_start);
+      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) i_dat.inst_dur);
+  
       get_OSC_string(&inst_bndl, inst_mess);
       
   
@@ -221,6 +220,13 @@ void loop() {
 
       Serial.print("VWC: ");
       if (! VWC.publish((char *) String(s_dat.VWC).c_str())) {
+        Serial.println(F("Failed"));
+      } else {
+        Serial.println(F("OK"));
+      }
+
+      Serial.print("VBAT: ");
+      if (! VBAT.publish((char *) String(s_dat.VBAT).c_str())) {
         Serial.println(F("Failed"));
       } else {
         Serial.println(F("OK"));
