@@ -13,6 +13,7 @@
   #define RFM95_RST 4
   #define RFM95_INT 7
 */
+
 /* for M0 */
 #define RFM95_CS 8
 #define RFM95_RST 4
@@ -35,7 +36,7 @@
 #define RF95_FREQ 915.0
 
 //Size of message for LoRa
-#define MSG_SIZE 121
+#define MSG_SIZE RH_RF95_MAX_MESSAGE_LEN
 
 //IDString constructor
 #define STR_HELPER(x) #x

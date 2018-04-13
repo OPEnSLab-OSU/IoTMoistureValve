@@ -1,4 +1,4 @@
-void MQTT_connect() {
+  void MQTT_connect() {
   int8_t ret;
 
   // Stop if already connected.
