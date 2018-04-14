@@ -4,6 +4,8 @@
 #include <OSCBundle.h>
 #include "SDI12.h"
 #include <FlashStorage.h>
+#include <RTClibExtended.h>
+#include <Wire.h>
 
 //For relay shields and valve control.
 #define VALVE_PIN_ROT_OPEN  10 //Near relay
@@ -78,6 +80,20 @@ Trigger_Vals trig_vals;
 
 float last_batt_val;
 
+//Bleh
+RTC_DS3231 RTC_DS;
+
+//  =================================================================================
+//  =====! Alarm type not currently implemented, only interval wake currently. !=====
+//  =================================================================================
+
+// Declare/init RTC_DS variables//
+volatile bool TakeSampleFlag = false; // Flag is set with external pin interrupt by RTC using wake() method in rtc_utils.
+volatile int HR = 8;                  // Hours    --- Use this for daily alarm implementation.
+volatile int MIN = 0;                 // Minutes  --- Use this for daily alarm implementation.
+volatile int WakePeriodMin = 1;       // Period of time to take sample in Min, reset alarm based on this period (Bo - 5 min)
+const byte wakeUpPin = 13;   
+
 void setup() {
   digitalWrite(RFM95_RST, LOW);
   delay(10);
@@ -112,8 +128,8 @@ void setup() {
     trig_vals.mode = 1;
     trig_vals.vwc_low = 10.15;
     trig_vals.vwc_high = 25.53;
-    trig_vals.start = 2000;
-    trig_vals.dur = 5000;
+    trig_vals.start = 1;
+    trig_vals.dur = 2;
     trig_vals.valid = true;
 
     trigger_flash_store.write(trig_vals);
@@ -126,6 +142,17 @@ void setup() {
     Serial.print("Start Time: "); Serial.print(trig_vals.start); Serial.print(" ");
     Serial.print("Duration: "); Serial.println(trig_vals.dur);
   }
+
+  Serial.println("RTC defined.");
+  pinMode(wakeUpPin, INPUT_PULLUP);
+
+  Serial.println("M0 defined.");
+  attachInterrupt(wakeUpPin, wake, FALLING);
+  
+  InitalizeRTC();
+  
+  Serial.print("Alarm set to go off every "); Serial.print(WakePeriodMin); Serial.println("min from program time");
+  delay(2000);
 
   Serial.println("Initializing manager...");
   if (!manager.init())
@@ -163,228 +190,242 @@ OSCBundle bndl;
 
 void loop() {
 
-  Serial.println("----- BEGIN RUN -----");
-  Serial.print("Run: #"); Serial.println(++count);
+    attachInterrupt(digitalPinToInterrupt(wakeUpPin), wake, FALLING);
 
-  last_batt_val = check_batt();
-
-  sdiResponse = "";
-  resp_buf = "";
-  myCommand = "";
-
-  //-----------------------------
-  //----- Begin sensor read -----
-  //-----------------------------
-
-  //Take a measurement
-  myCommand = String(SENSOR_ADDRESS) + "M!";
-  Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
-
-  mySDI12.sendCommand(myCommand);
-  delay(30); // wait a while for a response
-
-  // build response string
-  while (mySDI12.available()) {
-    char c = mySDI12.read();
-    if ((c != '\n') && (c != '\r')) {
-      sdiResponse += c;
-      delay(5);
+    if(TakeSampleFlag){
+    
+    detachInterrupt(digitalPinToInterrupt(wakeUpPin));
+    
+    Serial.println("I woke up.");
+    clearAlarmFunction(); // Clear RTC Alarm
+  
+    Serial.println("----- BEGIN RUN -----");
+    Serial.print("Run: #"); Serial.println(++count);
+  
+    last_batt_val = check_batt();
+  
+    sdiResponse = "";
+    resp_buf = "";
+    myCommand = "";
+  
+    //-----------------------------
+    //----- Begin sensor read -----
+    //-----------------------------
+  
+    //Take a measurement
+    myCommand = String(SENSOR_ADDRESS) + "M!";
+    Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
+  
+    mySDI12.sendCommand(myCommand);
+    delay(30); // wait a while for a response
+  
+    // build response string
+    while (mySDI12.available()) {
+      char c = mySDI12.read();
+      if ((c != '\n') && (c != '\r')) {
+        sdiResponse += c;
+        delay(5);
+      }
     }
-  }
-  if (sdiResponse.length() > 1)
-    Serial.println(sdiResponse); //write the response to the screen
-  mySDI12.clearBuffer();
-
-
-  delay(1000); // delay between taking reading and requesting data
-
-  //Clear bufs
-  sdiResponse = ""; // clear the response string
-  resp_buf = "";
-
-  //Set garbage values.
-  VWC = 99999.9;
-  temp = 99999.9;
-  elec = 99999;
-
-  //Request data from last measurement
-  myCommand = String(SENSOR_ADDRESS) + "D0!";
-  Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
-
-  mySDI12.sendCommand(myCommand);
-  delay(30); // wait a while for a response
-
-  while (mySDI12.available()) {  // build string from response
-    char c = mySDI12.read();
-    if ((c != '\n') && (c != '\r')) {
-      sdiResponse += c;
-      delay(5);
+    if (sdiResponse.length() > 1)
+      Serial.println(sdiResponse); //write the response to the screen
+    mySDI12.clearBuffer();
+  
+  
+    delay(1000); // delay between taking reading and requesting data
+  
+    //Clear bufs
+    sdiResponse = ""; // clear the response string
+    resp_buf = "";
+  
+    //Set garbage values.
+    VWC = 99999.9;
+    temp = 99999.9;
+    elec = 99999;
+  
+    //Request data from last measurement
+    myCommand = String(SENSOR_ADDRESS) + "D0!";
+    Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
+  
+    mySDI12.sendCommand(myCommand);
+    delay(30); // wait a while for a response
+  
+    while (mySDI12.available()) {  // build string from response
+      char c = mySDI12.read();
+      if ((c != '\n') && (c != '\r')) {
+        sdiResponse += c;
+        delay(5);
+      }
     }
-  }
-
-  if (sdiResponse.length() > 1) {
-    Serial.println(sdiResponse); //write the response to the screen
-
-    char * pch;
-    char * buf = strdup(sdiResponse.c_str());
-    pch = strtok (buf, delimit);// Burn sensor number.
-
-    pch = strtok (NULL, delimit);  // VWC value
-    VWC = atof(pch);
-
-    pch = strtok (NULL, delimit);  // Temp value
-    temp = atof(pch);
-
-    pch = strtok (NULL, delimit);  // ElecCond value
-    elec = atoi(pch);
-  }
-  Serial.print("VWC: "); Serial.print(VWC);
-  Serial.print(" Temp: "); Serial.print(temp);
-  Serial.print(" ElecCond: "); Serial.println(elec);
-
-  mySDI12.clearBuffer();
-  //-----------------------------
-  //------ End sensor read ------
-  //-----------------------------
-
-  //------ Package read data ------
-  bndl.empty();
-
-  bndl.add(MyIDString "/VWC").add((float)VWC);
-  //  Serial.print("Add VWC ");
-  bndl.add(MyIDString "/temp").add((float)temp);
-  //  Serial.print("Add Temp ");
-  bndl.add(MyIDString "/ElecCond").add((int32_t)elec);
-  //  Serial.println("Add EC");
-  bndl.add(MyIDString "/vbat").add((float)last_batt_val);
-  //  Serial.println("Add VBat");
-
-  char message[MSG_SIZE];
-
-  memset(message, '\0', MSG_SIZE);
-  get_OSC_string(&bndl, message);
-
-  Serial.println(message);
-  Serial.print("Message length: "); Serial.println(strlen(message));
-  Serial.print("Max message length: "); Serial.println(RH_RF95_MAX_MESSAGE_LEN);
-
-  //delay(2000);
-
-  Serial.print("Sending...");
-  if (manager.sendtoWait((uint8_t*)message, strlen(message), HUB_ADDRESS)) {
-    Serial.println("ok, listening for reply instructions.");
-
-    unsigned long lora_timer = millis();
-    while (!manager.available() && (millis() - lora_timer < 1000)) {}
-
-
-    //TODO ADD TYPE CHECKING FOR RECIEVED.
-    if (manager.available()) {
-      uint8_t len = sizeof(inst_buf);
-      //Serial.println(len); //DEBUG
-      uint8_t from;
-      memset(inst_buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
-
-      if (manager.recvfromAck(inst_buf, &len, &from)) {
-        if (from == HUB_ADDRESS) {
-          //DEBUG
-          Serial.println((char*) inst_buf);
-
-          //OSCBundle inst_bndl;
-
-          //bndl.empty();
-
-          get_OSC_bundle((char*)inst_buf, &bndl);
-
-          //TODO Change from hardcoded to While loop.
-          //TODO Check if actual value contained or crashes. Use GetType()?
-          Serial.print((int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0)); Serial.print(" ");
-          trig_vals.mode = (int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0);
-
-          Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0)); Serial.print(" ");
-          trig_vals.vwc_low = (float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0);
-
-          Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0)); Serial.print(" ");
-          trig_vals.vwc_high = (float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0);
-
-          Serial.print((int32_t)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0)); Serial.print(" ");
-          trig_vals.start = ((unsigned long)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0));
-
-          Serial.println((int32_t)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
-          trig_vals.dur = ((unsigned long)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
-
-          trigger_flash_store.write(trig_vals);
-
-          //DEBUG Close valve.
-
-          //inst_bndl.empty();
+  
+    if (sdiResponse.length() > 1) {
+      Serial.println(sdiResponse); //write the response to the screen
+  
+      char * pch;
+      char * buf = strdup(sdiResponse.c_str());
+      pch = strtok (buf, delimit);// Burn sensor number.
+  
+      pch = strtok (NULL, delimit);  // VWC value
+      VWC = atof(pch);
+  
+      pch = strtok (NULL, delimit);  // Temp value
+      temp = atof(pch);
+  
+      pch = strtok (NULL, delimit);  // ElecCond value
+      elec = atoi(pch);
+    }
+    Serial.print("VWC: "); Serial.print(VWC);
+    Serial.print(" Temp: "); Serial.print(temp);
+    Serial.print(" ElecCond: "); Serial.println(elec);
+  
+    mySDI12.clearBuffer();
+    //-----------------------------
+    //------ End sensor read ------
+    //-----------------------------
+  
+    //------ Package read data ------
+    bndl.empty();
+  
+    bndl.add(MyIDString "/VWC").add((float)VWC);
+    //  Serial.print("Add VWC ");
+    bndl.add(MyIDString "/temp").add((float)temp);
+    //  Serial.print("Add Temp ");
+    bndl.add(MyIDString "/ElecCond").add((int32_t)elec);
+    //  Serial.println("Add EC");
+    bndl.add(MyIDString "/vbat").add((float)last_batt_val);
+    //  Serial.println("Add VBat");
+  
+    char message[MSG_SIZE];
+  
+    memset(message, '\0', MSG_SIZE);
+    get_OSC_string(&bndl, message);
+  
+    Serial.println(message);
+    Serial.print("Message length: "); Serial.println(strlen(message));
+    Serial.print("Max message length: "); Serial.println(RH_RF95_MAX_MESSAGE_LEN);
+  
+    //delay(2000);
+  
+    Serial.print("Sending...");
+    if (manager.sendtoWait((uint8_t*)message, strlen(message), HUB_ADDRESS)) {
+      Serial.println("ok, listening for reply instructions.");
+  
+      unsigned long lora_timer = millis();
+      while (!manager.available() && (millis() - lora_timer < 1000)) {}
+  
+  
+      //TODO ADD TYPE CHECKING FOR RECIEVED.
+      if (manager.available()) {
+        uint8_t len = sizeof(inst_buf);
+        //Serial.println(len); //DEBUG
+        uint8_t from;
+        memset(inst_buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
+  
+        if (manager.recvfromAck(inst_buf, &len, &from)) {
+          if (from == HUB_ADDRESS) {
+            //DEBUG
+            Serial.println((char*) inst_buf);
+  
+            //OSCBundle inst_bndl;
+  
+            //bndl.empty();
+  
+            get_OSC_bundle((char*)inst_buf, &bndl);
+  
+            //TODO Change from hardcoded to While loop.
+            //TODO Check if actual value contained or crashes. Use GetType()?
+            Serial.print((int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0)); Serial.print(" ");
+            trig_vals.mode = (int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0);
+  
+            Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0)); Serial.print(" ");
+            trig_vals.vwc_low = (float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0);
+  
+            Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0)); Serial.print(" ");
+            trig_vals.vwc_high = (float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0);
+  
+            Serial.print((int32_t)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0)); Serial.print(" ");
+            trig_vals.start = ((unsigned long)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0));
+  
+            Serial.println((int32_t)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
+            trig_vals.dur = ((unsigned long)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
+  
+            trigger_flash_store.write(trig_vals);
+  
+            //DEBUG Close valve.
+  
+            //inst_bndl.empty();
+          }
         }
       }
+    } else {
+      Serial.println("failed");
     }
-  } else {
-    Serial.println("failed");
+  
+    //DEBUG
+    Serial.print("Stored instructions: ");
+    Serial.print(trig_vals.mode); Serial.print(" ");
+    Serial.print(trig_vals.vwc_low); Serial.print(" ");
+    Serial.print(trig_vals.vwc_high); Serial.print(" ");
+    Serial.print(trig_vals.start); Serial.print(" ");
+    Serial.println(trig_vals.dur);
+  
+  
+    switch (trig_vals.mode) {
+      case 1:
+        Serial.println("Timer mode.");
+  
+        if (trig_vals.start >= 0 && trig_vals.dur > 0) {
+          
+          //DEBUG
+          Serial.print("No time offset, starting watering for "); Serial.print(trig_vals.dur); Serial.println(" seconds.");
+
+          WakePeriodMin = trig_vals.start;
+  
+          valve_open();
+          delay(trig_vals.dur * SECOND);
+          trigger_flash_store.write(trig_vals);
+          valve_close();
+  
+        }
+//        else if (trig_vals.start > 0 && trig_vals.dur > 0) {
+//          Serial.print("Time offset for "); Serial.print(trig_vals.start); Serial.println(" seconds, sleeping.");
+//  
+//          delay(trig_vals.start * SECOND);
+//  
+//          Serial.print("Awake, starting watering for "); Serial.print(trig_vals.dur); Serial.println(" seconds.");
+//  
+//          valve_open();
+//          delay(trig_vals.dur);
+//          trigger_flash_store.write(trig_vals);
+//          valve_close();
+//  
+//        }
+        else {
+          //TODO Send warning to user...?
+          Serial.println("ERROR: Bad formatting of date and/or timer.");
+        }
+        break;
+      case 2:
+        Serial.println("VWC mode.");
+  
+        //TODO Take readings and water while low > vwc, and stop when vwc > high.
+  
+        break;
+      case 3:
+        Serial.println("Combined mode.");
+  
+        break;
+      default:
+        Serial.println("Fell off Switch statement. You shouldn't be here.");
+        // statements
+    }
+  
+    setAlarmFunction();
+    delay(75);  // delay so serial stuff has time to print out all the way
+    TakeSampleFlag = false; // Clear Sample Flag
+    
+    Serial.println("----- END RUN -----\n\n");
+    delay(WAIT * SECOND);
+  
   }
-
-  //DEBUG
-  Serial.print("Stored instructions: ");
-  Serial.print(trig_vals.mode); Serial.print(" ");
-  Serial.print(trig_vals.vwc_low); Serial.print(" ");
-  Serial.print(trig_vals.vwc_high); Serial.print(" ");
-  Serial.print(trig_vals.start); Serial.print(" ");
-  Serial.println(trig_vals.dur);
-
-
-  switch (trig_vals.mode) {
-    case 1:
-      Serial.println("Timer mode.");
-
-      if (trig_vals.start == 0 && trig_vals.dur > 0) {
-        //DEBUG
-        Serial.print("No time offset, starting watering for "); Serial.print(trig_vals.dur); Serial.println(" seconds.");
-
-        valve_open();
-        delay(trig_vals.dur);
-        trig_vals.dur = 0;
-        trigger_flash_store.write(trig_vals);
-        valve_close();
-
-      } else if (trig_vals.start > 0 && trig_vals.dur > 0) {
-        Serial.print("Time offset for "); Serial.print(trig_vals.start); Serial.println(" seconds, sleeping.");
-
-        delay(trig_vals.start);
-
-        Serial.print("Awake, starting watering for "); Serial.print(trig_vals.dur); Serial.println(" seconds.");
-
-        valve_open();
-        delay(trig_vals.dur);
-        trig_vals.dur = 0;
-        trigger_flash_store.write(trig_vals);
-        valve_close();
-
-      } else {
-        //TODO Send warning to user...?
-        Serial.println("ERROR: Bad formatting of date and/or timer.");
-      }
-      break;
-    case 2:
-      Serial.println("VWC mode.");
-
-      //TODO Take readings and water while low > vwc, and stop when vwc > high.
-
-      break;
-    case 3:
-      Serial.println("Combined mode.");
-
-      break;
-    default:
-      Serial.println("Fell off Switch statement. You shouldn't be here.");
-      // statements
-  }
-
-  //TODO Replace with sleep code.
-  Serial.print("Waiting for "); Serial.print(WAIT); Serial.println(" seconds.");
-  Serial.println("----- END RUN -----\n\n");
-  delay(WAIT * SECOND);
-
-
 }

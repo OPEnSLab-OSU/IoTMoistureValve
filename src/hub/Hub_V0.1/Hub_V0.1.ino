@@ -81,7 +81,10 @@ Adafruit_MQTT_Publish VBAT = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial);
+//  while (!Serial);
+
+  delay(5000);
+  Serial.println("Here.");
 
   //manual reset
   digitalWrite(RFM95_RST, LOW);
@@ -153,7 +156,9 @@ void loop() {
       }
     }
   }
-  Serial.println("I'm Looping");
+  
+  //Serial.println("I'm Looping");
+  
   if (manager.available()) 
   {
     Serial.println("Inside Manager.available");
@@ -183,11 +188,16 @@ void loop() {
 
       // Add desired instructions to bundle. Remember to handle on receiving end. /
       //Build Instruction Bundle for the Relay
-      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) i_dat.inst_mode);
+//      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) i_dat.inst_mode); UNCOMMENT
+      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) 1); //DELETE
+      
       inst_bndl.add(MYIDString "/vwc_low_inst").add((float)i_dat.inst_VWC_low);
       inst_bndl.add(MYIDString "/vwc_high_inst").add((float)i_dat.inst_VWC_high);
-      inst_bndl.add(MYIDString "/start_inst").add((int32_t) i_dat.inst_start);
-      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) i_dat.inst_dur);
+//      inst_bndl.add(MYIDString "/start_inst").add((int32_t) i_dat.inst_start); UNCOMMENT
+      inst_bndl.add(MYIDString "/start_inst").add((int32_t) 1);
+      
+//      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) i_dat.inst_dur); UNCOMMENT
+      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) 1); //DELETE
   
       get_OSC_string(&inst_bndl, inst_mess);
       
