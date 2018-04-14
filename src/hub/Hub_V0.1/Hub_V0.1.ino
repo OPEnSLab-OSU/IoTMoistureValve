@@ -188,16 +188,11 @@ void loop() {
 
       // Add desired instructions to bundle. Remember to handle on receiving end. /
       //Build Instruction Bundle for the Relay
-//      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) i_dat.inst_mode); UNCOMMENT
-      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) 1); //DELETE
-      
+      inst_bndl.add(MYIDString "/mode_inst").add((int32_t) i_dat.inst_mode);
       inst_bndl.add(MYIDString "/vwc_low_inst").add((float)i_dat.inst_VWC_low);
       inst_bndl.add(MYIDString "/vwc_high_inst").add((float)i_dat.inst_VWC_high);
-//      inst_bndl.add(MYIDString "/start_inst").add((int32_t) i_dat.inst_start); UNCOMMENT
-      inst_bndl.add(MYIDString "/start_inst").add((int32_t) 1);
-      
-//      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) i_dat.inst_dur); UNCOMMENT
-      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) 1); //DELETE
+      inst_bndl.add(MYIDString "/start_inst").add((int32_t) i_dat.inst_start);
+      inst_bndl.add(MYIDString "/dur_inst").add((int32_t) i_dat.inst_dur);
   
       get_OSC_string(&inst_bndl, inst_mess);
       
