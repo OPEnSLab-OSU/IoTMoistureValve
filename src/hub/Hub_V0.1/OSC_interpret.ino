@@ -15,7 +15,7 @@ union data_vals {
 };
 
 void get_OSC_string(OSCBundle *bndl, char *string) {
-  char buf[50];
+  char buf[MSG_SIZE];
   char type;
   int n = 0;
   data_vals value;
@@ -42,7 +42,7 @@ void get_OSC_string(OSCBundle *bndl, char *string) {
       Serial.print(": ");
       Serial.println(value.f);*/
       
-      snprintf(buf, 50, " f%lu", value.u);
+      snprintf(buf, MSG_SIZE, " f%lu", value.u);
       strcat(string, buf);
     }
     else if (type == 'i') {
@@ -52,7 +52,7 @@ void get_OSC_string(OSCBundle *bndl, char *string) {
       Serial.print(": ");
       Serial.println(value.i);*/
       
-      snprintf(buf, 50, " i%lu", value.u);
+      snprintf(buf, MSG_SIZE, " i%lu", value.u);
       strcat(string, buf);
     }
     n++;
@@ -69,7 +69,7 @@ struct inst_data get_inst_data(char *string)
   int x;
 
   Serial.println((char*) string);
-  char buf[121];
+  char buf[MSG_SIZE];
   char *p = buf;
   char *addr = NULL, *value = NULL;
   strcpy(buf, string);
@@ -92,6 +92,9 @@ struct inst_data get_inst_data(char *string)
     if(count == 4){
         i_dat.inst_dur = atoi(addr);
     }
+    if(count == 5){
+        i_dat.inst_sleep = atoi(addr);
+    }
     addr = strtok(NULL, "/");
     count ++;
   }
@@ -102,7 +105,7 @@ struct inst_data get_inst_data(char *string)
 struct soil_data get_OSC_bundle(char *string, OSCBundle* bndl) {
   bndl->empty();
   data_vals value_union;
-  char buf[RH_RF95_MAX_MESSAGE_LEN];
+  char buf[MSG_SIZE];
   char *p = buf;
   char *addr = NULL, *value = NULL;
   strcpy(buf, string);

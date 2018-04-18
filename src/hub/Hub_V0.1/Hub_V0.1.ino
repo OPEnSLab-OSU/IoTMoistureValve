@@ -126,6 +126,7 @@ struct inst_data
       float inst_VWC_high = 0;
       int32_t inst_start = 0;
       int32_t inst_dur = 0;
+      int32_t inst_sleep = 0;
       int32_t inst_mode = 0;
 
 };
@@ -193,7 +194,8 @@ void loop() {
       inst_bndl.add(MYIDString "/vwc_high_inst").add((float)i_dat.inst_VWC_high);
       inst_bndl.add(MYIDString "/start_inst").add((int32_t) i_dat.inst_start);
       inst_bndl.add(MYIDString "/dur_inst").add((int32_t) i_dat.inst_dur);
-  
+      inst_bndl.add(MYIDString "/sleep_inst").add((int32_t) i_dat.inst_sleep);
+
       get_OSC_string(&inst_bndl, inst_mess);
       
   

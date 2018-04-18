@@ -54,14 +54,22 @@
 //https://learn.adafruit.com/adafruit-feather-m0-radio-with-lora-radio-module?view=all#power-management
 #define VBATPIN A7
 
+int           mode_inst;
+float         vwc_low_inst;
+float         vwc_high_inst;
+unsigned long start_inst;
+unsigned long dur_inst;
+unsigned long sleep_inst;
+
 //Struct for storage of recieved instructions.
 typedef struct {
-  boolean valid;
-  int mode;
-  float vwc_low;
-  float vwc_high;
+  boolean       valid;
+  int           mode;
+  float         vwc_low;
+  float         vwc_high;
   unsigned long start;
   unsigned long dur;
+  unsigned long sleep;
 } Trigger_Vals;
 
 //Setup Pin-read
@@ -118,18 +126,13 @@ void setup() {
   if (trig_vals.valid == false) {
     Serial.println("No stored values, setting defaults.");
 
-    int mode;
-    float vwc_low;
-    float vwc_high;
-    unsigned long start;
-    unsigned long dur;
-
-    //DEBUG
+    //Get good defaults from client
     trig_vals.mode = 1;
     trig_vals.vwc_low = 10.15;
     trig_vals.vwc_high = 25.53;
-    trig_vals.start = 1;
+    trig_vals.start = 0;
     trig_vals.dur = 2;
+    trig_vals.sleep = 1;
     trig_vals.valid = true;
 
     trigger_flash_store.write(trig_vals);
@@ -140,7 +143,8 @@ void setup() {
     Serial.print("VWC Lower: "); Serial.print(trig_vals.vwc_low); Serial.print(" ");
     Serial.print("VWC Upper: "); Serial.print(trig_vals.vwc_high); Serial.print(" ");
     Serial.print("Start Time: "); Serial.print(trig_vals.start); Serial.print(" ");
-    Serial.print("Duration: "); Serial.println(trig_vals.dur);
+    Serial.print("Duration: "); Serial.print(trig_vals.dur);
+    Serial.print("Sleep time: "); Serial.println(trig_vals.sleep);
   }
 
   Serial.println("RTC defined.");
@@ -174,6 +178,8 @@ void setup() {
   Serial.print(HALF_SEC); Serial.println("ms per try.");
   last_batt_val = check_batt();
   Serial.println("---- END SETUP---- \n\n");
+
+  TakeSampleFlag = true;
 }
 
 //Setup for sensor read.
@@ -192,11 +198,11 @@ void loop() {
 
     attachInterrupt(digitalPinToInterrupt(wakeUpPin), wake, FALLING);
 
-    if(TakeSampleFlag){
+  if(TakeSampleFlag){
     
     detachInterrupt(digitalPinToInterrupt(wakeUpPin));
     
-    Serial.println("I woke up.");
+//    Serial.println("I woke up.");
     clearAlarmFunction(); // Clear RTC Alarm
   
     Serial.println("----- BEGIN RUN -----");
@@ -319,7 +325,7 @@ void loop() {
         uint8_t len = sizeof(inst_buf);
         //Serial.println(len); //DEBUG
         uint8_t from;
-        memset(inst_buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
+        memset(inst_buf, '\0', MSG_SIZE);
   
         if (manager.recvfromAck(inst_buf, &len, &from)) {
           if (from == HUB_ADDRESS) {
@@ -334,26 +340,47 @@ void loop() {
   
             //TODO Change from hardcoded to While loop.
             //TODO Check if actual value contained or crashes. Use GetType()?
-            Serial.print((int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0)); Serial.print(" ");
-            trig_vals.mode = (int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0);
-  
-            Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0)); Serial.print(" ");
-            trig_vals.vwc_low = (float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0);
-  
-            Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0)); Serial.print(" ");
-            trig_vals.vwc_high = (float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0);
-  
-            Serial.print((int32_t)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0)); Serial.print(" ");
-            trig_vals.start = ((unsigned long)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0));
-  
-            Serial.println((int32_t)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
-            trig_vals.dur = ((unsigned long)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
-  
-            trigger_flash_store.write(trig_vals);
-  
-            //DEBUG Close valve.
-  
-            //inst_bndl.empty();
+
+//            Serial.print((int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0)); Serial.print(" ");
+            mode_inst = (int)bndl.getOSCMessage(HubIDString "/mode_inst")->getInt(0);
+
+//            Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0)); Serial.print(" ");
+            vwc_low_inst = (float)bndl.getOSCMessage(HubIDString "/vwc_low_inst")->getFloat(0);
+
+//            Serial.print((float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0)); Serial.print(" ");
+            vwc_high_inst = (float)bndl.getOSCMessage(HubIDString "/vwc_high_inst")->getFloat(0);
+
+//            Serial.print((int32_t)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0)); Serial.print(" ");
+            start_inst = ((unsigned long)bndl.getOSCMessage(HubIDString "/start_inst")->getInt(0));
+
+//            Serial.print((int32_t)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0)); Serial.print(" ");
+            dur_inst = ((unsigned long)bndl.getOSCMessage(HubIDString "/dur_inst")->getInt(0));
+
+//            Serial.println((int32_t)bndl.getOSCMessage(HubIDString "/sleep_inst")->getInt(0));
+            sleep_inst = ((unsigned long)bndl.getOSCMessage(HubIDString "/sleep_inst")->getInt(0));
+
+            delay(250);
+
+//            Serial.print("mode_inst read: "); Serial.println(mode_inst);
+            if((1 <= mode_inst) && (mode_inst <= 3)){
+
+//              Serial.println("Inside mode check.");
+
+              trig_vals.mode      = mode_inst;
+
+              trig_vals.vwc_low   = vwc_low_inst;
+              trig_vals.vwc_high  = vwc_high_inst;
+
+              trig_vals.start     = start_inst;
+              trig_vals.dur       = dur_inst;
+
+              trig_vals.sleep     = sleep_inst;
+
+              trigger_flash_store.write(trig_vals);
+            } else {
+              Serial.println("ERROR: Recieved data was badly formatted.");
+              //TODO Send notification to user?
+            }
           }
         }
       }
@@ -367,26 +394,60 @@ void loop() {
     Serial.print(trig_vals.vwc_low); Serial.print(" ");
     Serial.print(trig_vals.vwc_high); Serial.print(" ");
     Serial.print(trig_vals.start); Serial.print(" ");
-    Serial.println(trig_vals.dur);
+    Serial.print(trig_vals.dur); Serial.print(" ");
+    Serial.println(trig_vals.sleep);
   
   
     switch (trig_vals.mode) {
       case 1:
         Serial.println("Timer mode.");
-  
-        if (trig_vals.start >= 0 && trig_vals.dur > 0) {
-          
-          //DEBUG
+
+        Serial.print(trig_vals.start); Serial.print(" "); Serial.println(trig_vals.dur);
+
+        if ((trig_vals.start == 0) && (trig_vals.dur >= 0)) {
+          //DEBUG&& (trig_vals.dur >= 0
           Serial.print("No time offset, starting watering for "); Serial.print(trig_vals.dur); Serial.println(" seconds.");
 
-          WakePeriodMin = trig_vals.start;
+          WakePeriodMin = trig_vals.sleep;
   
           valve_open();
           delay(trig_vals.dur * SECOND);
           trigger_flash_store.write(trig_vals);
           valve_close();
-  
+
+        } else if ((trig_vals.start >= 1) && (trig_vals.dur > 0)) {
+          Serial.print("Time offset for "); Serial.print(trig_vals.start); Serial.println(" seconds, sleeping.");
+
+          delay(trig_vals.start * SECOND);
+
+          Serial.print("Awake, starting watering for "); Serial.print(trig_vals.dur); Serial.println(" seconds.");
+
+          valve_open();
+          delay(trig_vals.dur);
+          trigger_flash_store.write(trig_vals);
+          valve_close();
+
+        } else {
+          //TODO Send warning to user...?
+          Serial.println("ERROR: Timer mode - Bad formatting of date and/or timer.");
         }
+        break;
+      case 2:
+        Serial.println("VWC mode.");
+//
+//        if (trig_vals.vwc_low >= 0 && trig_vals.vwc_high >= 0) {
+//
+//          //DEBUG
+//          Serial.print("WATERING"); Serial.print(trig_vals.dur); Serial.println(" seconds.");
+//
+//          WakePeriodMin = DEFAULT_SLEEP
+//
+//          valve_open();
+//          delay(trig_vals.dur * SECOND);
+//          trigger_flash_store.write(trig_vals);
+//          valve_close();
+//
+//        }
 //        else if (trig_vals.start > 0 && trig_vals.dur > 0) {
 //          Serial.print("Time offset for "); Serial.print(trig_vals.start); Serial.println(" seconds, sleeping.");
 //  
@@ -400,15 +461,10 @@ void loop() {
 //          valve_close();
 //  
 //        }
-        else {
-          //TODO Send warning to user...?
-          Serial.println("ERROR: Bad formatting of date and/or timer.");
-        }
-        break;
-      case 2:
-        Serial.println("VWC mode.");
-  
-        //TODO Take readings and water while low > vwc, and stop when vwc > high.
+//        else {
+//          //TODO Send warning to user...?
+//          Serial.println("ERROR: Timer mode - Bad formatting of date and/or timer.");
+//        }
   
         break;
       case 3:

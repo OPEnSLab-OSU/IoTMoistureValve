@@ -9,7 +9,7 @@
       while (1); // Activates Watchdog Function after 15ms.
     }
     
-    // This may end up causing a problem in practice - what if RTC looses power in field? Shouldn't happen with coin cell batt backup
+    // This may end up causing a problem in practice - what if RTC loses power in field? Shouldn't happen with coin cell batt backup
     if (RTC_DS.lostPower()) {
         Serial.println("RTC lost power, lets set the time!");
       // following line sets the RTC to the date & time this sketch was compiled
