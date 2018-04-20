@@ -383,6 +383,8 @@ void loop() {
             }
           }
         }
+      } else {
+        Serial.println("Nothing available on LoRa. Continuing with stored values.");
       }
     } else {
       Serial.println("failed");
