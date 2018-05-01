@@ -61,15 +61,21 @@ unsigned long start_inst;
 unsigned long dur_inst;
 unsigned long sleep_inst;
 
+//Simple enumator for valve state values.
+enum class valve_state {CLOSED = 0, OPEN = 1};
+
 //Struct for storage of recieved instructions.
 typedef struct {
-  boolean       valid;
-  int           mode;
-  float         vwc_low;
-  float         vwc_high;
-  unsigned long start;
-  unsigned long dur;
-  unsigned long sleep;
+  boolean       valid;        // Is flash memory still good?
+  boolean       started;      // Irrigation has started.
+  valve_state   valve;        // Valve open or closed?
+  DateTime      valve_change; // Time to next valve open/close.
+  int           mode;         // Mode of operation (1-Timer, 2-VWC, 3-combined)
+  float         vwc_low;      // VWC low threshold to open valve in VWC/combined
+  float         vwc_high;     // VWC high threshold to close valve in VWC/combined
+  unsigned long start;        // Time offset from inst recieved to begin watering.
+  unsigned long dur;          // Length of time to water for.
+  unsigned long sleep;        // Data read/upload alarm.
 } Trigger_Vals;
 
 //Setup Pin-read
@@ -96,7 +102,7 @@ RTC_DS3231 RTC_DS;
 //  =================================================================================
 
 // Declare/init RTC_DS variables//
-volatile bool TakeSampleFlag = false; // Flag is set with external pin interrupt by RTC using wake() method in rtc_utils.
+volatile bool doWakeRoutine = false; // Flag is set with external pin interrupt by RTC using wake() method in rtc_utils.
 volatile int HR = 8;                  // Hours    --- Use this for daily alarm implementation.
 volatile int MIN = 0;                 // Minutes  --- Use this for daily alarm implementation.
 volatile int WakePeriodMin = 1;       // Period of time to take sample in Min, reset alarm based on this period (Bo - 5 min)
@@ -133,6 +139,7 @@ void setup() {
     trig_vals.start = 0;
     trig_vals.dur = 2;
     trig_vals.sleep = 1;
+    trig_vals.valve = valve_state::CLOSED;
     trig_vals.valid = true;
 
     trigger_flash_store.write(trig_vals);
@@ -179,7 +186,7 @@ void setup() {
   last_batt_val = check_batt();
   Serial.println("---- END SETUP---- \n\n");
 
-  TakeSampleFlag = true;
+  doWakeRoutine = true;
 }
 
 //Setup for sensor read.
@@ -195,15 +202,16 @@ int count = 0; //Testing loop counter.
 OSCBundle bndl;
 
 void loop() {
+  attachInterrupt(digitalPinToInterrupt(wakeUpPin), wake, FALLING);
 
-    attachInterrupt(digitalPinToInterrupt(wakeUpPin), wake, FALLING);
-
-  if(TakeSampleFlag){
+    // TODO Sleep here if sleep operates correctly.
+    //.goToSleep();
     
+  if(doWakeRoutine){
     detachInterrupt(digitalPinToInterrupt(wakeUpPin));
-    
-//    Serial.println("I woke up.");
-    clearAlarmFunction(); // Clear RTC Alarm
+
+    //Serial.println("I woke up.");
+    clearAlarmFunction(); // Clear RTC Alarm (Clears all?)
   
     Serial.println("----- BEGIN RUN -----");
     Serial.print("Run: #"); Serial.println(++count);
@@ -318,9 +326,9 @@ void loop() {
   
       unsigned long lora_timer = millis();
       while (!manager.available() && (millis() - lora_timer < 1000)) {}
+      // TODO Change timer to variable value? Not 1000 arbitrary.  
   
-  
-      //TODO ADD TYPE CHECKING FOR RECIEVED.
+      // TODO ADD TYPE CHECKING FOR RECIEVED.
       if (manager.available()) {
         uint8_t len = sizeof(inst_buf);
         //Serial.println(len); //DEBUG
@@ -331,10 +339,6 @@ void loop() {
           if (from == HUB_ADDRESS) {
             //DEBUG
             Serial.println((char*) inst_buf);
-  
-            //OSCBundle inst_bndl;
-  
-            //bndl.empty();
   
             get_OSC_bundle((char*)inst_buf, &bndl);
   
@@ -364,8 +368,6 @@ void loop() {
 //            Serial.print("mode_inst read: "); Serial.println(mode_inst);
             if((1 <= mode_inst) && (mode_inst <= 3)){
 
-//              Serial.println("Inside mode check.");
-
               trig_vals.mode      = mode_inst;
 
               trig_vals.vwc_low   = vwc_low_inst;
@@ -377,18 +379,23 @@ void loop() {
               trig_vals.sleep     = sleep_inst;
 
               trigger_flash_store.write(trig_vals);
+              
             } else {
               Serial.println("ERROR: Recieved data was badly formatted.");
               //TODO Send notification to user?
             }
+
+            
           }
         }
       } else {
         Serial.println("Nothing available on LoRa. Continuing with stored values.");
       }
     } else {
-      Serial.println("failed");
+      Serial.println("failed.");
     }
+
+    
   
     //DEBUG
     Serial.print("Stored instructions: ");
@@ -404,15 +411,18 @@ void loop() {
       case 1:
         Serial.println("Timer mode.");
 
+        // DEBUG
         Serial.print(trig_vals.start); Serial.print(" "); Serial.println(trig_vals.dur);
 
-        if ((trig_vals.start == 0) && (trig_vals.dur >= 0)) {
-          //DEBUG&& (trig_vals.dur >= 0
+        if (trig_vals.start > 0) {
+          setAlarm  //TODO
+        } else {
+          //DEBUG (trig_vals.dur >= 0
           Serial.print("No time offset, starting watering for "); Serial.print(trig_vals.dur); Serial.println(" seconds.");
 
-          WakePeriodMin = trig_vals.sleep;
-  
+          trig_vals.dur;
           valve_open();
+          
           delay(trig_vals.dur * SECOND);
           trigger_flash_store.write(trig_vals);
           valve_close();
@@ -478,12 +488,12 @@ void loop() {
         // statements
     }
   
-    setAlarmFunction();
+    setAlarmFunction(1, ); // TODO Remove?
     delay(75);  // delay so serial stuff has time to print out all the way
-    TakeSampleFlag = false; // Clear Sample Flag
+    doWakeRoutine = false;
     
-    Serial.println("----- END RUN -----\n\n");
-    delay(WAIT * SECOND);
-  
+    Serial.println("----- END RUN -----\n\n");  
   }
 }
+
+

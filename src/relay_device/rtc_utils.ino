@@ -38,19 +38,31 @@
   // RTC helper function
   // Function to query current RTC time and add the period to set next alarm cycle
   // *********
-  void setAlarmFunction()
+  void setAlarmMins(byte alarm_num, unsigned int min_offset)
   {
-    DateTime now = RTC_DS.now(); // Check the current time
-  
-    // Calculate new time
-    MIN = (now.minute() + WakePeriodMin) % 60; // wrap-around using modulo every 60 sec
-    HR  = (now.hour() + ((now.minute() + WakePeriodMin) / 60)) % 24; // quotient of now.min+periodMin added to now.hr, wraparound every 24hrs
+
+    if(0 > alarm_num || alarm_num > 2)) {
+      Serial.println("Alarm number must be 1 or 2.");
+      return;
+    }
     
-      Serial.print("Resetting Alarm 1 for: "); Serial.print(HR); Serial.print(":"); Serial.println(MIN);
-  
+    DateTime now = RTC_DS.now(); // Check the current time
+
+    // Calculate new time
+    MIN = (now.minute() + min_offset) % 60; // wrap-around using modulo every 60 sec
+    HR  = (now.hour() + ((now.minute() + min_offset) / 60)) % 24; // quotient of now.min+periodMin added to now.hr, wraparound every 24hrs
+    
+    Serial.print("Resetting Alarm "); Serial.print(alarm_num); Serial.print(" for: "); Serial.print(HR); Serial.print(":"); Serial.println(MIN);
+
+    // set your wake-up time here      
+    if(alarm_num == 1){
+      RTC_DS.setAlarm(ALM1_MATCH_HOURS, MIN, HR, 0);
+    } else if(alarm_num == 2){
+      RTC_DS.setAlarm(ALM2_MATCH_HOURS, MIN, HR, 0);
+    }
+    
     //Set alarm1
-    RTC_DS.setAlarm(ALM1_MATCH_HOURS, MIN, HR, 0);   //set your wake-up time here
-    RTC_DS.alarmInterrupt(1, true);
+    RTC_DS.alarmInterrupt(alarm_num, true);
   }
   
   //*********
@@ -71,7 +83,7 @@
   // Called when on interrupt from INT_PIN
   void wake()
   {
-    TakeSampleFlag = true;
+    doWakeRoutine = true;
   }
 
 
