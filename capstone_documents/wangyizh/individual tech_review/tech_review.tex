@@ -64,6 +64,20 @@ Fall 2017\\
 	The user will use this system to view recorded moisture data from various sensors, as well as use it to make decisions on when and where water is most needed in their ﬁeld. In particular, this software be used to track local soil moisture levels, and allow agriculturalists to choose the most optimal times to run the irrigation systems that water their crops. 
 	\par 
 	This system will take user input and send it to desired watering schedules (via the relay hub) to the individual sensor/valve-control devices in the desired watering areas. This software should be deployed to both a web-based platform, as well as a desktop application platform. Optimally, the client would also like a mobile app developed for Android, iOS, or potentially both. The data that this software handles should also, preferentially, be available online for others to view.    
+	\section{Fundamental Part 1 - Machine to machine communication technologyn}
+	\subsection{Criteria}
+	\par The web client should be able to communicate with hub. Adafruit.io is asked by client to use for this aim. It can be treat as a server that can update data without any action from user.
+	
+	\subsection{Technology 1 - Adafruit IO}
+	\par
+	Adafruit IO is a system that makes data useful. It includes the libraries with MQTT APIs. We will use adafrui\_MQTT broker for this project. It’s simple and light weight. It only takes about 80 bytes to connect to a server and user can stay connected the entire time. 
+    \subsection{Technology 2 - Plotly}
+	\par 
+	Plotly is a technical computing company that develops online data analytics and visualization tools. It provides online graphing, analytics, and statistics tools for individuals and collaboration, as well as scientific graphing libraries. 
+    \subsection{Comparison}
+    \par 
+    I do not have much understanding about the machine to machine communication technology, so there isn’t any comparison between these two technologies. We choose to use Adafruit IO system because it’s simple and it works very well.
+
 	\section{Part 1 - UI organization}
 	\subsection{Criteria}
 	\par The web client should display the data of moisture sensors appropriately. It should list the data in one page and be able to get the input from data with an expand input box or in a new page.
