@@ -17,7 +17,8 @@
     }
     
     //clear any pending alarms
-    clearAlarmFunction();
+//    clearTargetAlarm(1);
+//    clearTargetAlarm(2);
   
     // Query Time and print
     DateTime now = RTC_DS.now();
@@ -31,7 +32,7 @@
     RTC_DS.writeSqwPinMode(DS3231_OFF);
   
     //Set alarm1
-    setAlarmFunction();
+//    setAlarmMins(1, 5);
   }
   
   // *********
@@ -41,7 +42,7 @@
   void setAlarmMins(byte alarm_num, unsigned int min_offset)
   {
 
-    if(0 > alarm_num || alarm_num > 2)) {
+    if(0 > alarm_num || alarm_num > 2) {
       Serial.println("Alarm number must be 1 or 2.");
       return;
     }
@@ -67,17 +68,14 @@
   
   //*********
   // RTC helper function
-  // When exiting the sleep mode we clear the alarm
+  // Clear specific alarm from the RTC
   //*********
-  void clearAlarmFunction()
+  void clearTargetAlarm(int alarm_num)
   {
     //clear any pending alarms
-    RTC_DS.armAlarm(1, false);
-    RTC_DS.clearAlarm(1);
-    RTC_DS.alarmInterrupt(1, false);
-    RTC_DS.armAlarm(2, false);
-    RTC_DS.clearAlarm(2);
-    RTC_DS.alarmInterrupt(2, false);
+    RTC_DS.armAlarm(alarm_num, false);
+    RTC_DS.clearAlarm(alarm_num);
+    RTC_DS.alarmInterrupt(alarm_num, false);
   }
 
   // Called when on interrupt from INT_PIN
@@ -86,4 +84,7 @@
     doWakeRoutine = true;
   }
 
+  unsigned long minsToSecLong(unsigned long mins) {
+    return mins*60L;
+  }
 
