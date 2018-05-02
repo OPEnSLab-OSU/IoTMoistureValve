@@ -214,7 +214,8 @@ void loop() {
     detachInterrupt(digitalPinToInterrupt(wakeUpPin));
 
     //Serial.println("I woke up.");
-    clearTargetAlarm(1); // Clear RTC Alarm (Clears all?)
+    clearTargetAlarm(1); // Clear RTC Alarm
+    
 
     Serial.println("----- BEGIN RUN -----");
     Serial.print("Run: #"); Serial.println(++count);
