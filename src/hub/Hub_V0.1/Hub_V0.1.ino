@@ -178,9 +178,6 @@ void loop() {
       Serial.println((char*)buf);
       String str;
 
-      //----------------------------------------
-      //------ Pack and send instructions ------
-      //----------------------------------------
       char inst_mess[MSG_SIZE];
       memset(inst_mess, '\0', MSG_SIZE);
 
@@ -189,7 +186,9 @@ void loop() {
          Serial.println(str.toInt());
         // inst_timer = str.toInt();
 
-
+      //----------------------------------------
+      //------ Pack and send instructions ------
+      //----------------------------------------
       inst_bndl.empty();
 
       // Add desired instructions to bundle. Remember to handle on receiving end. /
@@ -206,9 +205,12 @@ void loop() {
       if(new_instructions){
         if (manager.sendtoWait((uint8_t*)inst_mess, strlen(inst_mess), RELAY_ADDRESS)) {
           Serial.println("Instructions sent.");
+          new_instructions = false;
         } else {
           Serial.println("Instruction sending failed -- TODO/Resend?");
         }
+      } else {
+        Serial.println("No new instructions to pass.");
       }
       //----------------------------------------
       //------ End of instruction passing ------
