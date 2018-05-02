@@ -17,7 +17,8 @@
     }
     
     //clear any pending alarms
-    clearAlarmFunction();
+//    clearTargetAlarm(1);
+//    clearTargetAlarm(2);
   
     // Query Time and print
     DateTime now = RTC_DS.now();
@@ -31,47 +32,59 @@
     RTC_DS.writeSqwPinMode(DS3231_OFF);
   
     //Set alarm1
-    setAlarmFunction();
+//    setTargetAlarm(1, 5);
   }
   
   // *********
   // RTC helper function
   // Function to query current RTC time and add the period to set next alarm cycle
   // *********
-  void setAlarmFunction()
+  void setTargetAlarm(byte alarm_num, unsigned int min_offset)
   {
-    DateTime now = RTC_DS.now(); // Check the current time
-  
-    // Calculate new time
-    MIN = (now.minute() + WakePeriodMin) % 60; // wrap-around using modulo every 60 sec
-    HR  = (now.hour() + ((now.minute() + WakePeriodMin) / 60)) % 24; // quotient of now.min+periodMin added to now.hr, wraparound every 24hrs
+
+    if(0 > alarm_num || alarm_num > 2) {
+      Serial.println("Alarm number must be 1 or 2.");
+      return;
+    }
     
-      Serial.print("Resetting Alarm 1 for: "); Serial.print(HR); Serial.print(":"); Serial.println(MIN);
-  
+    DateTime now = RTC_DS.now(); // Check the current time
+
+    // Calculate new time
+    MIN = (now.minute() + min_offset) % 60; // wrap-around using modulo every 60 sec
+    HR  = (now.hour() + ((now.minute() + min_offset) / 60)) % 24; // quotient of now.min+periodMin added to now.hr, wraparound every 24hrs
+    
+    Serial.print("Resetting Alarm "); Serial.print(alarm_num); Serial.print(" for: "); Serial.print(HR); Serial.print(":"); Serial.println(MIN);
+
+    // set your wake-up time here      
+    if(alarm_num == 1){
+      RTC_DS.setAlarm(ALM1_MATCH_HOURS, MIN, HR, 0);
+    } else if(alarm_num == 2){
+      RTC_DS.setAlarm(ALM2_MATCH_HOURS, MIN, HR, 0);
+    }
+    
     //Set alarm1
-    RTC_DS.setAlarm(ALM1_MATCH_HOURS, MIN, HR, 0);   //set your wake-up time here
-    RTC_DS.alarmInterrupt(1, true);
+    RTC_DS.alarmInterrupt(alarm_num, true);
   }
   
   //*********
   // RTC helper function
-  // When exiting the sleep mode we clear the alarm
+  // Clear specific alarm from the RTC
   //*********
-  void clearAlarmFunction()
+  void clearTargetAlarm(int alarm_num)
   {
     //clear any pending alarms
-    RTC_DS.armAlarm(1, false);
-    RTC_DS.clearAlarm(1);
-    RTC_DS.alarmInterrupt(1, false);
-    RTC_DS.armAlarm(2, false);
-    RTC_DS.clearAlarm(2);
-    RTC_DS.alarmInterrupt(2, false);
+    RTC_DS.armAlarm(alarm_num, false);
+    RTC_DS.clearAlarm(alarm_num);
+    RTC_DS.alarmInterrupt(alarm_num, false);
   }
 
   // Called when on interrupt from INT_PIN
   void wake()
   {
-    TakeSampleFlag = true;
+    doWakeRoutine = true;
   }
 
+  unsigned long minsToSecLong(unsigned long mins) {
+    return mins*60L;
+  }
 

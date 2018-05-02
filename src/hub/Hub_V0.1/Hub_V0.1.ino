@@ -79,6 +79,8 @@ Adafruit_MQTT_Publish VWC = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/s
 Adafruit_MQTT_Subscribe txtbox = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.txtbox");
 Adafruit_MQTT_Publish VBAT = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vbat");
 
+boolean new_instructions;
+
 void setup() {
   Serial.begin(9600);
 //  while (!Serial);
@@ -107,6 +109,8 @@ void setup() {
 
   //mqtt.subscribe(&onoffbutton);
     mqtt.subscribe(&txtbox);
+
+    new_instructions = false;
 }
 
 uint32_t x = 0;
@@ -154,6 +158,7 @@ void loop() {
         Serial.print(F("Got: "));
         Serial.println((char *)txtbox.lastread);
         get_inst_data((char *)txtbox.lastread);
+        new_instructions = true;
       }
     }
   }
@@ -173,9 +178,6 @@ void loop() {
       Serial.println((char*)buf);
       String str;
 
-      //----------------------------------------
-      //------ Pack and send instructions ------
-      //----------------------------------------
       char inst_mess[MSG_SIZE];
       memset(inst_mess, '\0', MSG_SIZE);
 
@@ -184,7 +186,9 @@ void loop() {
          Serial.println(str.toInt());
         // inst_timer = str.toInt();
 
-
+      //----------------------------------------
+      //------ Pack and send instructions ------
+      //----------------------------------------
       inst_bndl.empty();
 
       // Add desired instructions to bundle. Remember to handle on receiving end. /
@@ -198,11 +202,15 @@ void loop() {
 
       get_OSC_string(&inst_bndl, inst_mess);
       
-  
-      if (manager.sendtoWait((uint8_t*)inst_mess, strlen(inst_mess), RELAY_ADDRESS)) {
-        Serial.println("Instructions sent.");
+      if(new_instructions){
+        if (manager.sendtoWait((uint8_t*)inst_mess, strlen(inst_mess), RELAY_ADDRESS)) {
+          Serial.println("Instructions sent.");
+          new_instructions = false;
+        } else {
+          Serial.println("Instruction sending failed -- TODO/Resend?");
+        }
       } else {
-        Serial.println("Instruction sending failed -- TODO/Resend?");
+        Serial.println("No new instructions to pass.");
       }
       //----------------------------------------
       //------ End of instruction passing ------
