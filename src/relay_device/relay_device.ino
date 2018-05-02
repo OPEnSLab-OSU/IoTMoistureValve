@@ -413,6 +413,8 @@ void loop() {
         Serial.println(trig_vals.sleep_unix);
 
         trigger_flash_store.write(trig_vals);
+
+        new_instructions = false;
       } else {
         Serial.println("ERROR: Received data was badly formatted.");
         //TODO Send notification to user?
@@ -459,6 +461,22 @@ void loop() {
           break;
         case 3:
           Serial.println("Combined mode.");
+            if (trig_vals.start_unix > time_now.unixtime()) {
+            Serial.println("Waiting...");
+            break;
+          } else if ( (trig_vals.start_unix <= time_now.unixtime()) &&
+                      (trig_vals.dur_unix > time_now.unixtime()) &&
+                      (trig_vals.dur > 0)) {
+            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
+
+            valve_open();
+            trig_vals.valve = ValveState::OPEN;
+            trigger_flash_store.write(trig_vals);
+
+          } else {
+            //TODO Send warning to user...?
+            Serial.println("WARN: No work to do, check times?");
+          }
           break;
         default:
           Serial.println("Fell off Switch statement. You shouldn't be here.");
@@ -478,6 +496,14 @@ void loop() {
         case 2:
           break;
         case 3:
+          if(trig_vals.dur_unix > time_now.unixtime()){
+            Serial.println("Keep watering...");
+          } else if (trig_vals.dur_unix < time_now.unixtime())  {
+            Serial.println("Closing valve");
+            valve_close();
+            trig_vals.valve = ValveState::CLOSED;
+            trigger_flash_store.write(trig_vals);
+          }
           break;
         default:
           Serial.println("Fell off Switch statement. You shouldn't be here.");
