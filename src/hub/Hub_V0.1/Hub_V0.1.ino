@@ -79,6 +79,8 @@ Adafruit_MQTT_Publish VWC = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/s
 Adafruit_MQTT_Subscribe txtbox = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.txtbox");
 Adafruit_MQTT_Publish VBAT = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vbat");
 
+boolean new_instructions;
+
 void setup() {
   Serial.begin(9600);
 //  while (!Serial);
@@ -107,6 +109,8 @@ void setup() {
 
   //mqtt.subscribe(&onoffbutton);
     mqtt.subscribe(&txtbox);
+
+    new_instructions = false;
 }
 
 uint32_t x = 0;
@@ -154,6 +158,7 @@ void loop() {
         Serial.print(F("Got: "));
         Serial.println((char *)txtbox.lastread);
         get_inst_data((char *)txtbox.lastread);
+        new_instructions = true;
       }
     }
   }
@@ -198,11 +203,12 @@ void loop() {
 
       get_OSC_string(&inst_bndl, inst_mess);
       
-  
-      if (manager.sendtoWait((uint8_t*)inst_mess, strlen(inst_mess), RELAY_ADDRESS)) {
-        Serial.println("Instructions sent.");
-      } else {
-        Serial.println("Instruction sending failed -- TODO/Resend?");
+      if(new_instructions){
+        if (manager.sendtoWait((uint8_t*)inst_mess, strlen(inst_mess), RELAY_ADDRESS)) {
+          Serial.println("Instructions sent.");
+        } else {
+          Serial.println("Instruction sending failed -- TODO/Resend?");
+        }
       }
       //----------------------------------------
       //------ End of instruction passing ------
