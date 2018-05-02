@@ -1,7 +1,7 @@
 //Set digital logic pins for relay in main file.
 
 #define START_VALVE_OPEN 1 //In SECOND increments.
-#define OPEN_RELIEF_TIMER 1 //In HALF_SEC increments.
+#define OPEN_RELIEF_TIMER 2 //In HALF_SEC increments.
 #define FINISH_VALVE_OPEN 2 //In SECOND increments.
 
 #define START_VALVE_CLOSE 2 //In SECOND increments.

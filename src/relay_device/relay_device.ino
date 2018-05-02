@@ -459,7 +459,7 @@ void loop() {
         case 2:
           Serial.println("VWC mode.");
           Serial.print(trig_vals.vwc_low); Serial.print(" "); Serial.println(VWC);
-          if (trig_vals.vwc_low > VWC) {
+          if (trig_vals.vwc_low > VWC && VWC < trig_vals.vwc_high) {
             Serial.println("VWC low, opening...");
             valve_open();
             trig_vals.valve = ValveState::OPEN;
