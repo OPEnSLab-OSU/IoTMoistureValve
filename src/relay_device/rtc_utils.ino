@@ -32,14 +32,14 @@
     RTC_DS.writeSqwPinMode(DS3231_OFF);
   
     //Set alarm1
-//    setAlarmMins(1, 5);
+//    setTargetAlarm(1, 5);
   }
   
   // *********
   // RTC helper function
   // Function to query current RTC time and add the period to set next alarm cycle
   // *********
-  void setAlarmMins(byte alarm_num, unsigned int min_offset)
+  void setTargetAlarm(byte alarm_num, unsigned int min_offset)
   {
 
     if(0 > alarm_num || alarm_num > 2) {
