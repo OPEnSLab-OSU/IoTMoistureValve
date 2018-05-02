@@ -185,7 +185,6 @@ void setup() {
   Serial.println("Setting power...");
   rf95.setTxPower(23, false);
 
-
   manager.setRetries(10);
   manager.setTimeout(HALF_SEC);
 
@@ -222,11 +221,11 @@ void loop() {
     detachInterrupt(digitalPinToInterrupt(wakeUpPin));
 
     //Serial.println("I woke up.");
-    clearTargetAlarm(1); // Clear RTC Alarm
+    //clearTargetAlarm(1); // Clear RTC Alarm
 
     DateTime time_now = RTC_DS.now();
-    
-    if(first_run){
+
+    if (first_run) {
       first_run = false; // Remove?
     }
 
@@ -414,24 +413,22 @@ void loop() {
         Serial.println(trig_vals.sleep_unix);
 
         trigger_flash_store.write(trig_vals);
-
-        //DEBUG
-        Serial.print("Stored instructions: ");
-        Serial.print(trig_vals.mode); Serial.print(" ");
-        Serial.print(trig_vals.vwc_low); Serial.print(" ");
-        Serial.print(trig_vals.vwc_high); Serial.print(" ");
-        Serial.print(trig_vals.start); Serial.print(" ");
-        Serial.print(trig_vals.dur); Serial.print(" ");
-        Serial.print(trig_vals.sleep); Serial.print(" ");
-        Serial.print(trig_vals.start_unix); Serial.print(" ");
-        Serial.print(trig_vals.dur_unix); Serial.print(" ");
-        Serial.println(trig_vals.sleep_unix);
-
       } else {
         Serial.println("ERROR: Received data was badly formatted.");
         //TODO Send notification to user?
       }
     }
+    //DEBUG
+    Serial.print("Stored instructions: ");
+    Serial.print(trig_vals.mode); Serial.print(" ");
+    Serial.print(trig_vals.vwc_low); Serial.print(" ");
+    Serial.print(trig_vals.vwc_high); Serial.print(" ");
+    Serial.print(trig_vals.start); Serial.print(" ");
+    Serial.print(trig_vals.dur); Serial.print(" ");
+    Serial.print(trig_vals.sleep); Serial.print(" ");
+    Serial.print(trig_vals.start_unix); Serial.print(" ");
+    Serial.print(trig_vals.dur_unix); Serial.print(" ");
+    Serial.println(trig_vals.sleep_unix);
 
     Serial.println(valveStateCheck());
 
@@ -439,9 +436,6 @@ void loop() {
       switch (trig_vals.mode) {
         case 1:
           Serial.println("Timer mode.");
-
-          // DEBUG
-          Serial.print(trig_vals.start); Serial.print(" "); Serial.println(trig_vals.dur);
 
           if (trig_vals.start > 0) {
             Serial.println("Waiting...");
@@ -485,7 +479,7 @@ void loop() {
       }
     }
 
-
+    clearTargetAlarm(1);
     setTargetAlarm(1, trig_vals.sleep); // TODO Remove?
     delay(75);  // delay so serial stuff has time to print out all the way
     doWakeRoutine = false;
