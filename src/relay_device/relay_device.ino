@@ -54,12 +54,12 @@
 //https://learn.adafruit.com/adafruit-feather-m0-radio-with-lora-radio-module?view=all#power-management
 #define VBATPIN A7
 
-int           mode_inst;
-float         vwc_low_inst;
-float         vwc_high_inst;
-unsigned long start_inst;
-unsigned long dur_inst;
-unsigned long sleep_inst;
+int      mode_inst;
+float    vwc_low_inst;
+float    vwc_high_inst;
+uint16_t start_inst;
+uint16_t dur_inst;
+uint16_t sleep_inst;
 
 //Simple enumator for valve state values.
 enum class ValveState {CLOSED = 0, OPEN = 1};
@@ -73,9 +73,12 @@ typedef struct {
   int           mode;         // Mode of operation (1-Timer, 2-VWC, 3-combined)
   float         vwc_low;      // VWC low threshold to open valve in VWC/combined
   float         vwc_high;     // VWC high threshold to close valve in VWC/combined
-  unsigned long start;        // Time offset from inst recieved to begin watering.
-  unsigned long dur;          // Length of time to water for.
-  unsigned long sleep;        // Data read/upload alarm.
+  uint16_t      start;        // Time offset from inst recieved to begin watering.
+  uint16_t      dur;          // Length of time to water for.
+  uint16_t      sleep;        // Data read/upload alarm length.
+  unsigned long start_unix;   // Time offset in .unixtime() seconds
+  unsigned long dur_unix;     // Length of time to water in .unixtime() seconds
+  unsigned long sleep_unix;   // Data read/upload alarm length in .unixtime() seconds.
 } Trigger_Vals;
 
 //Setup Pin-read
@@ -394,8 +397,6 @@ void loop() {
       Serial.println("failed.");
     }
 
-
-
     //DEBUG
     Serial.print("Stored instructions: ");
     Serial.print(trig_vals.mode); Serial.print(" ");
@@ -405,39 +406,58 @@ void loop() {
     Serial.print(trig_vals.dur); Serial.print(" ");
     Serial.println(trig_vals.sleep);
 
+    Serial.println(valveStateCheck());
 
-    switch (trig_vals.mode) {
-      case 1:
-        Serial.println("Timer mode.");
+    if(trig_vals.valve == ValveState::CLOSED){
+      switch (trig_vals.mode) {
+        case 1:
+          Serial.println("Timer mode.");
 
-        // DEBUG
-        Serial.print(trig_vals.start); Serial.print(" "); Serial.println(trig_vals.dur);
+          // DEBUG
+          Serial.print(trig_vals.start); Serial.print(" "); Serial.println(trig_vals.dur);
 
-        if (trig_vals.start > 0) {
-          Serial.println("Waiting...");
+          if (trig_vals.start > 0) {
+            Serial.println("Waiting...");
+            break;
+          } else if ((trig_vals.start <= 0) && (trig_vals.dur > 0)) {
+            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
+
+            valve_open();
+            trig_vals.valve = ValveState::OPEN;
+            trigger_flash_store.write(trig_vals);
+
+          } else {
+            //TODO Send warning to user...?
+            Serial.println("ERROR: Timer mode - Bad formatting of date and/or timer.");
+          }
           break;
-        } else if ((trig_vals.start <= 0) && (trig_vals.dur > 0)) {
-          Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
-          
-          valve_open();
-          trig_vals.valve = ValveState::OPEN;
+        case 2:
+          Serial.println("VWC mode.");
+          break;
+        case 3:
+          Serial.println("Combined mode.");
+          break;
+        default:
+          Serial.println("Fell off Switch statement. You shouldn't be here.");
+          // statements
+      }
+    } else {
+      switch (trig_vals.mode) {
+        case 1:
+          Serial.println("Closing valve");
+          valve_close();
+          trig_vals.valve = ValveState::CLOSED;
           trigger_flash_store.write(trig_vals);
-
-        } else {
-          //TODO Send warning to user...?
-          Serial.println("ERROR: Timer mode - Bad formatting of date and/or timer.");
-        }
-        break;
-      case 2:
-        Serial.println("VWC mode.");
-        break;
-      case 3:
-        Serial.println("Combined mode.");
-        break;
-      default:
-        Serial.println("Fell off Switch statement. You shouldn't be here.");
-        // statements
+          break;
+        case 2:
+          break;
+        case 3:
+          break;
+        default:
+          Serial.println("Fell off Switch statement. You shouldn't be here.");
+      }
     }
+
 
     setTargetAlarm(1, trig_vals.sleep); // TODO Remove?
     delay(75);  // delay so serial stuff has time to print out all the way
@@ -447,4 +467,10 @@ void loop() {
   }
 }
 
+char* valveStateCheck(){
+  if(trig_vals.valve == ValveState::OPEN)
+    return("OPEN");
+  else
+    return("CLOSED");
+}
 
