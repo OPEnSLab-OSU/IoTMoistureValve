@@ -437,10 +437,12 @@ void loop() {
         case 1:
           Serial.println("Timer mode.");
 
-          if (trig_vals.start > 0) {
+          if (trig_vals.start_unix > time_now.unixtime()) {
             Serial.println("Waiting...");
             break;
-          } else if ((trig_vals.start <= 0) && (trig_vals.dur > 0)) {
+          } else if ( (trig_vals.start_unix <= time_now.unixtime()) &&
+                      (trig_vals.dur_unix > time_now.unixtime()) &&
+                      (trig_vals.dur > 0)) {
             Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
 
             valve_open();
@@ -449,7 +451,7 @@ void loop() {
 
           } else {
             //TODO Send warning to user...?
-            Serial.println("ERROR: Timer mode - Bad formatting of date and/or timer.");
+            Serial.println("WARN: No work to do, check times?");
           }
           break;
         case 2:
@@ -460,15 +462,18 @@ void loop() {
           break;
         default:
           Serial.println("Fell off Switch statement. You shouldn't be here.");
-          // statements
       }
     } else {
       switch (trig_vals.mode) {
         case 1:
-          Serial.println("Closing valve");
-          valve_close();
-          trig_vals.valve = ValveState::CLOSED;
-          trigger_flash_store.write(trig_vals);
+          if(trig_vals.dur_unix > time_now.unixtime()){
+            Serial.println("Keep watering...");
+          } else if (trig_vals.dur_unix < time_now.unixtime())  {
+            Serial.println("Closing valve");
+            valve_close();
+            trig_vals.valve = ValveState::CLOSED;
+            trigger_flash_store.write(trig_vals);
+          }
           break;
         case 2:
           break;
