@@ -1,7 +1,8 @@
 /***********************************
-   Author: Peter Dorich
-   Based off code from OSC by Kenny Noble
-   Back-end for send/ recieve data between hub/ valve
+ *  Author: Peter Dorich
+ *  Hub code for data transfer between Adafruit.io and  
+ *  the valve controller. 
+ *  Data rate limit is due to Adafruit.io Free account.
  ************************************/
 #include <SPI.h>
 #include <RH_RF95.h>
@@ -57,64 +58,9 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 RHReliableDatagram manager(rf95, HUB_ADDRESS);
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 
-/********************Ethernet Client Setup******************************/
-byte mac[] = {0x98, 0x76, 0xB6, 0x10, 0x61, 0xD6};
-
-#define AIO_SERVER      "io.adafruit.com"
-#define AIO_SERVERPORT  1883
-#define AIO_USERNAME    "OPEnS"
-#define AIO_KEY         "c3b8ceca3231410ab47418540810c1fe"
-
-EthernetClient client;
-
-Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
-
-// You don't need to change anything below this line!
-#define halt(s) { Serial.println(F( s )); while(1);  }
-
-Adafruit_MQTT_Publish Elec_Cond = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.elec-cond");
-Adafruit_MQTT_Publish Temperature = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.temp");
-Adafruit_MQTT_Publish VWC = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vwc");
-//Adafruit_MQTT_Subscribe onoffbutton = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.on-off");
-Adafruit_MQTT_Subscribe txtbox = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.txtbox");
-Adafruit_MQTT_Publish VBAT = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vbat");
-
-boolean new_instructions;
-
-void setup() {
-  Serial.begin(9600);
-//  while (!Serial);
-
-  delay(5000);
-  Serial.println("Here.");
-
-  //manual reset
-  digitalWrite(RFM95_RST, LOW);
-  delay(10);
-  digitalWrite(RFM95_RST, HIGH);
-  delay(10);
-
-  if (!manager.init())
-    Serial.println("init failed");
-
-  if (!rf95.setFrequency(RF95_FREQ)) {
-    Serial.println("setFrequency failed");
-    while (1);
-  }
-
-  rf95.setTxPower(23, false);
-
-  Ethernet.begin(mac);
-  //delay(1000);
-
-  //mqtt.subscribe(&onoffbutton);
-    mqtt.subscribe(&txtbox);
-
-    new_instructions = false;
-}
-
 uint32_t x = 0;
 
+//Struct to hold the incoming soil data
 struct soil_data
 {
   float VWC;
@@ -124,6 +70,7 @@ struct soil_data
 
 };
 
+//Struct to hold the instruction parameters
 struct inst_data
 {
       float inst_VWC_low = 0;
@@ -142,8 +89,76 @@ OSCBundle inst_bndl;
 
 Adafruit_MQTT_Subscribe *subscription;
 
+/********************Ethernet Client Setup******************************/
+/* This section will change depending on the user's mac address and 
+ *  AIO account information. Each acccount is associated with a unique ID
+ */
+
+
+byte mac[] = {0x98, 0x76, 0xB6, 0x10, 0x61, 0xD6};
+
+#define AIO_SERVER      "io.adafruit.com"
+#define AIO_SERVERPORT  1883
+#define AIO_USERNAME    "OPEnS"
+#define AIO_KEY         "c3b8ceca3231410ab47418540810c1fe"
+
+EthernetClient client;
+
+Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+
+#define halt(s) { Serial.println(F( s )); while(1);  }
+
+
+//In order to publish data, the adafruit MQTT API can establish connections to our AIO feeds
+Adafruit_MQTT_Publish Elec_Cond = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.elec-cond");
+Adafruit_MQTT_Publish Temperature = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.temp");
+Adafruit_MQTT_Publish VWC = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vwc");
+Adafruit_MQTT_Subscribe txtbox = Adafruit_MQTT_Subscribe(&mqtt,  AIO_USERNAME "/feeds/soil-data.txtbox");
+Adafruit_MQTT_Publish VBAT = Adafruit_MQTT_Publish(&mqtt,  AIO_USERNAME "/feeds/soil-data.vbat");
+
+boolean new_instructions;
+
+void setup() {
+  Serial.begin(9600);
+
+  //Data rate limit delay
+  delay(5000);
+
+  Serial.println("Here.");
+
+  //manual reset
+  digitalWrite(RFM95_RST, LOW);
+  delay(10);
+  digitalWrite(RFM95_RST, HIGH);
+  delay(10);
+
+  if (!manager.init())
+    Serial.println("init failed");
+
+  if (!rf95.setFrequency(RF95_FREQ)) {
+    Serial.println("setFrequency failed");
+    while (1);
+  }
+
+    rf95.setTxPower(23, false);
+
+    Ethernet.begin(mac);
+  
+    mqtt.subscribe(&txtbox);
+
+    new_instructions = false;
+}
+
+/*MAIN LOOP:
+ * This is the recurring loop for the hub. 
+ * The hub will check for new incoming instruction
+ *      Won't send stale ones.
+ * Uses Open Sound Control Bundles to 
+ * communicate to the valve. 
+ * 
+ */
 void loop() {
-  //TODO This should (hopefully) do nothing.
+  
   MQTT_connect();
 
   unsigned long lora_timer = millis();
@@ -163,11 +178,8 @@ void loop() {
     }
   }
   
-  //Serial.println("I'm Looping");
-  
   if (manager.available()) 
   {
-    Serial.println("Inside Manager.available");
     uint8_t len = sizeof(buf);
     uint8_t from;
     memset(buf, '\0', RH_RF95_MAX_MESSAGE_LEN);
@@ -193,6 +205,7 @@ void loop() {
 
       // Add desired instructions to bundle. Remember to handle on receiving end. /
       //Build Instruction Bundle for the Relay
+      //OSC LIBRARY:
       inst_bndl.add(MYIDString "/mode_inst").add((int32_t) i_dat.inst_mode);
       inst_bndl.add(MYIDString "/vwc_low_inst").add((float)i_dat.inst_VWC_low);
       inst_bndl.add(MYIDString "/vwc_high_inst").add((float)i_dat.inst_VWC_high);
@@ -215,11 +228,10 @@ void loop() {
       //----------------------------------------
       //------ End of instruction passing ------
       //----------------------------------------
-
-      //TODO -- Handle data publish retry on fail???
+      
       Serial.print("[Publishing data] - ");
-      //Publish Info to Adafruit.io
-
+      
+      //Info from soil struct gets published to Adafruit.io
       Serial.print("Elec_Cond: ");
       if (! Elec_Cond.publish(s_dat.ELEC_COND)) {
         Serial.print(F("Failed "));
@@ -248,7 +260,6 @@ void loop() {
         Serial.println(F("OK"));
       }
 
-      //DEBUG Newlines between prints.
       Serial.println("\n\n");
     }
   }

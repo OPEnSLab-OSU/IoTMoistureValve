@@ -1,9 +1,9 @@
 /***********************************
  * Author: Peter Dorich 
- * Based off code from OSC by Kenny Noble 
  * Back-end for send/ recieve data between hub/ valve
- * NEW FUNCTIONALITY 2/15/2018: Added the string VWC and elec_conductivity and Temp to
- *      their own variables
+ * This file deals with the behind the scenes parsing of
+ * bundles and strings. 
+ * OSC code based off of OPEnS lab resources. 
  ************************************/
 
 #include <string.h>
@@ -25,33 +25,17 @@ void get_OSC_string(OSCBundle *bndl, char *string) {
     msg->getAddress(buf, 0);
     type = msg->getType(0);
     
-    /*
-    Serial.print("Address ");
-    Serial.print(n+1);
-    Serial.print(": ");
-    Serial.println(buf);
-    */
-
     strcat(string, buf);
 
     if (type == 'f') {
       value.f = msg->getFloat(0);
-      /*
-      Serial.print("Value ");
-      Serial.print(n+1);
-      Serial.print(": ");
-      Serial.println(value.f);*/
-      
+  
       snprintf(buf, MSG_SIZE, " f%lu", value.u);
       strcat(string, buf);
     }
     else if (type == 'i') {
       value.i = msg->getInt(0);
-      /*Serial.print("Value ");
-      Serial.print(n+1);
-      Serial.print(": ");
-      Serial.println(value.i);*/
-      
+
       snprintf(buf, MSG_SIZE, " i%lu", value.u);
       strcat(string, buf);
     }
@@ -61,9 +45,16 @@ void get_OSC_string(OSCBundle *bndl, char *string) {
   }
 }
 
+
+/*get_inst_data() wil parse out the instruction string from
+ * the adafruit.io subscription.
+ * 
+ * OSC bundles were too much for MQTT and Adafruit to handle, 
+ * so this string isn't parsed out like a bundle. 
+ * Format is: //"mode/low/high/start_dur/inst_dur"
+ */
 struct inst_data get_inst_data(char *string)
 {
-//TODO: parse string and get values
 //"mode/low/high/start_dur/inst_dur"
 
   int x;
@@ -102,6 +93,11 @@ struct inst_data get_inst_data(char *string)
 
 }
 
+/* get_OSC_bundle will parse out the OSC bundle that is recieved. 
+ *  Incoming soil data order is known: VWC, Temp, VBat, Elec_cond.
+ *  Adds each value to the soil struct (s_dat)
+ *  get_OSC_bundle() returns this struct. 
+ */
 struct soil_data get_OSC_bundle(char *string, OSCBundle* bndl) {
   bndl->empty();
   data_vals value_union;
@@ -120,10 +116,6 @@ struct soil_data get_OSC_bundle(char *string, OSCBundle* bndl) {
     value_union.u = strtoul(&value[1], NULL, 0);
     if (value[0] == 'f') {
       bndl->add(addr).add(value_union.f);
-//      Serial.print("Address: ");
-//      Serial.println(addr);
-//      Serial.print("Value: ");
-//      Serial.println(value_union.f);
       if(count == 0){
          vwc = value_union.f;
          Serial.print("The VWC is: ");
