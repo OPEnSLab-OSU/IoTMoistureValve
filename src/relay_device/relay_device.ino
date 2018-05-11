@@ -144,7 +144,7 @@ void setup() {
     //Get good defaults from client
     trig_vals.mode = 1;
     trig_vals.vwc_low = 10.15;
-    trig_vals.vwc_high = 25.53;
+    trig_vals.vwc_high = 16.02;
     trig_vals.start = 0;
     trig_vals.dur = 2;
     trig_vals.sleep = 1;
@@ -458,7 +458,23 @@ void loop() {
           break;
         case 2:
           Serial.println("VWC mode.");
+          Serial.print(trig_vals.vwc_low); Serial.print(" "); Serial.println(VWC);
+          if (trig_vals.vwc_low > VWC && VWC < trig_vals.vwc_high) {
+            Serial.println("VWC low, opening...");
+            valve_open();
+            trig_vals.valve = ValveState::OPEN;
+            trigger_flash_store.write(trig_vals);
+            break;
+          } 
+//          else if (trig_vals.vwc_low < VWC && ) {
+//            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
+//
+//          } 
+          else {
+            //TODO Send warning to user...?
+            Serial.println("WARN: VWC within range, waiting for next check in.");
           break;
+          }
         case 3:
           Serial.println("Combined mode.");
             if (trig_vals.start_unix > time_now.unixtime()) {
@@ -494,7 +510,22 @@ void loop() {
           }
           break;
         case 2:
+          if (trig_vals.vwc_high < VWC) {
+            Serial.println("VWC too high, closing...");
+            valve_close();
+            trig_vals.valve = ValveState::CLOSED;
+            trigger_flash_store.write(trig_vals);
+            break;
+          } 
+//          else if (trig_vals.vwc_low < VWC && ) {
+//            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
+//
+//          } 
+          else {
+            //TODO Send warning to user...?
+            Serial.println("WARN: VWC low or within range, waiting for next check in.");        
           break;
+          }
         case 3:
           if(trig_vals.dur_unix > time_now.unixtime()){
             Serial.println("Keep watering...");
