@@ -3,6 +3,7 @@
  *  Hub code for data transfer between Adafruit.io and  
  *  the valve controller. 
  *  Data rate limit is due to Adafruit.io Free account.
+ *   * OSC code based off of OPEnS lab resources. 
  ************************************/
 #include <SPI.h>
 #include <RH_RF95.h>
