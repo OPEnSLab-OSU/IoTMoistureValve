@@ -4,6 +4,7 @@ public class IO{
 	public static void save() {
 		try {
 			FileWriter file = new FileWriter("log.txt");
+			//over write the log.txt file, each sensor's mode settings = one line in the file
 			for (int i = 0; i<variables.sensor.size(); i++) {
 				file.write(variables.sensor.get(i));
 				file.write(" ");
@@ -29,18 +30,19 @@ public class IO{
 			System.out.println("Unable to open file");
 		}
 	}
-	
+
+//when open the UI, load the settings store in the log.txt
 public static void load() throws IOException {
-	
+	//check if the file exist (use the UI first time)
 	File file1 = new File("log.txt");
 	if (file1.exists()) {
 		try {
 			FileReader file = new FileReader("log.txt");
 			
 			BufferedReader buffert = new BufferedReader(new FileReader("log.txt"));
-			if (buffert.readLine() == null) {
+			if (buffert.readLine() == null) { // if the file is empty, set with default value
 				variables.initial("1","VWC","20", "100", "0","0", "-1");
-			}else {
+			}else { //or read the file line by line
 				BufferedReader buffer = new BufferedReader(file);
 				String strLine;
 				while ((strLine = buffer.readLine())!= null) {
@@ -67,7 +69,8 @@ public static void load() throws IOException {
 		}catch (IOException e) {
 			System.out.println("Unable to open file");
 		}
-	}else {
+	
+	}else {//create new file and set the default mode settings
 		file1.createNewFile();
 		variables.initial("1","VWC","20", "100", "0","0", "-1");
 	}

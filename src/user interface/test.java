@@ -3,29 +3,21 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
-import java.util.Date;
-import java.text.DateFormat;
-import java.text.Format;
+
 import java.awt.event.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Objects;
-import java.util.Dictionary;
+
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import java.util.Calendar;
-import org.jdesktop.swingx.*;
-
-import java.awt.geom.Line2D;
 
 
 public class test {
 	
 	
 	public static JFrame guiFrame = new JFrame();
-	public static int tab_l = 46;
-	public static int pos_a = 43;
 	
 	//menu
 	public static JMenuBar menuBar;
@@ -60,12 +52,14 @@ public class test {
 		
 	public static JRadioButton rdbtnTime;
 	public static JRadioButton rdbtnBoth;
-	//vwc mode board
+	//vwc mode panel
 	public static JPanel VM_panel;
 	public static JLabel VWC_sL = new JLabel("Start");
 	public static JLabel VWC_eL = new JLabel("End");
 	public static JTextField VWC_label,VWC_eLabel;
+	//slider for start value (low value)
 	public static JSlider VWC;
+	//slider for end value (high value)
 	public static JSlider VWC_end;
     
 	//time mode panel
@@ -96,28 +90,41 @@ public class test {
 	message = new JLabel("");
 	sPanel.setLayout(null);
 	 
-	 
+	
+	//create display panel on frame
 	display_board();
+	//create tabs on frame
 	tab_board();	 
+	//create time mode panel on frame
 	tm_board();
- 
+	//create vwc mode panel on frame
 	vm_board();
+	//create mode selection panel on fram
 	mode_p();
-	create_new_frame();
+	//create input box for email & AIO_key
+	input_eA();
 	 
+	
+	//menubar on the frame
 	JMenuBar menuBar = new JMenuBar();
 	menuBar.setBounds(0, 0, 130, 34);
 	guiFrame.add(menuBar);
 	
+	//file menu
 	JMenu mnNewMenu_2 = new JMenu("File");
 	menuBar.add(mnNewMenu_2);
 	
+	
+	//close button under the file menu
 	JMenuItem mntmClose = new JMenuItem("Close");
 	mntmClose.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			System.exit(JFrame.EXIT_ON_CLOSE);
 		}
 	});
+	
+	//email button, click to change the current email to send to
+	//under file menu
 	JMenuItem mntmEmail = new JMenuItem("Email");
 	mnNewMenu_2.add(mntmEmail);
 	mntmEmail.addActionListener(new ActionListener() {
@@ -127,6 +134,7 @@ public class test {
 		}
 	});
 	
+	//AIO key button, click to change the current AIO_key to access to account
 	JMenuItem mntmAiokey = new JMenuItem("AIO key");
 	mnNewMenu_2.add(mntmAiokey);
 	mnNewMenu_2.add(mntmClose);
@@ -137,9 +145,15 @@ public class test {
 		}
 	});
 	
+	
+	//edit menu
 	JMenu mnNewMenu = new JMenu("Edit");
 	menuBar.add(mnNewMenu);
 	
+	
+	//add sensor button under edit menu
+	//click to add a new sensor to handle
+	//will not be used in the UI, only for test
 	JMenuItem mntmNewMenuItem = new JMenuItem("Add sens");
 	mntmNewMenuItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -165,6 +179,7 @@ public class test {
 	});
 	mnNewMenu.add(mntmNewMenuItem);
 	
+	//delete the current selected sensor
 	JMenuItem mntmDeleteSensor = new JMenuItem("Delete sensor");
 	mntmDeleteSensor.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -179,11 +194,12 @@ public class test {
 	 // will switch to another mode once click it
 	 
 	
-	
+	//mode meny
 	JMenu mnNewMenu_3 = new JMenu("Mode");
 	menuBar.add(mnNewMenu_3);
 	
-	
+	//switch the mode between real time mode (open or close the valve immediately)
+	// or data rely mode, open or close the value based on mode settings
 	JMenuItem mntmSwitchMode = new JMenuItem("Switch Mode");
 	mntmSwitchMode.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -203,9 +219,10 @@ public class test {
 	});
 	mnNewMenu_3.add(mntmSwitchMode);
 	
-	
+	//view menu
 	JMenu mnNewMenu_4 = new JMenu("View");
 	menuBar.add(mnNewMenu_4);
+	//check the current email in use
 	JMenuItem mntmCEmail = new JMenuItem("Check Email");
 	mntmCEmail.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -214,6 +231,25 @@ public class test {
 	});
 	mnNewMenu_4.add(mntmCEmail);
 	
+	/*
+	 
+	JMenuItem mntmCRecuring = new JMenuItem("Recuring");
+	
+	mntmCRecuring.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			if (variables.recuring_check == 1){
+				mntmCRecuring.setimage();
+				variables.recuring_check == 0;
+			}else{
+				variables.recuring_check == 1;
+			}
+		}
+	});
+	mnNewMenu_4.add(mntmCRecuring);
+	
+	 */
+	
+	//close error message or open it
 	JMenuItem mntmCError = new JMenuItem("Close error message");
 	mntmCError.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -229,34 +265,6 @@ public class test {
 		}
 	});
 	mnNewMenu_4.add(mntmCError);
-	/*
-	 JButton tabc = new JButton("Data");
-	 //JLabel lblTitle = new JLabel("var1");
-	 tabc.addActionListener( new ActionListener()
-	 {
-		 public void actionPerformed(ActionEvent e)
-		 {
-			 // Create a method named "createFrame()", and set up an new frame there
-			 if (r_d_mode == 1) {
-				 r_d_mode = 0;
-				 tabc.setText("Data");
-				 Applybutton.setEnabled(true);
-				 real_on_off.setEnabled(false);
-			 }
-			 else {
-				 tabc.setText("Real-time");
-				 r_d_mode = 1;
-				 real_on_off.setEnabled(true);
-				 Applybutton.setEnabled(false);
-			 }
-			 //request.Request_t();
-			 guiFrame.repaint();
-		 }	
-	 });
-	 tabc.setBackground(Color.WHITE);
-	 tabc.setBounds(400,450,80,30);
-	 guiFrame.add(tabc);
- 	*/
 	 //real-time mode on-off button
 	 real_on_off = new JButton("ON");
 	 real_on_off.setEnabled(false);
@@ -276,23 +284,22 @@ public class test {
 	 real_on_off.setBackground(Color.WHITE);
 	 real_on_off.setBounds(450,450,60,30);
 	 guiFrame.add(real_on_off);
-	 //tab
-      
-	 
+	
+	//label panel for each dash board
 	JPanel dlPanel = new JPanel();
 	dlPanel.setBounds(0, 250, 640, 55);
 	dlPanel.setBackground(new Color(135, 206, 235));
 	guiFrame.add(dlPanel);
 	dlPanel.setLayout(null);
-	
+	//vwc label
 	JLabel lblNewLabel_1 = new JLabel("VWC");
 	lblNewLabel_1.setBounds(98, 17, 73, 21);
 	dlPanel.add(lblNewLabel_1);
-	
+	//Tempature label
 	JLabel lblNewLabel_2 = new JLabel("Temp");
 	lblNewLabel_2.setBounds(300, 17, 73, 21);
 	dlPanel.add(lblNewLabel_2);
-	
+	//EC label
 	JLabel lblNewLabel_3 = new JLabel("EC");
 	lblNewLabel_3.setBounds(507, 17, 73, 21);
 	dlPanel.add(lblNewLabel_3);
@@ -307,24 +314,16 @@ public class test {
 	refresh.setBorder(null);
 	refresh.setFocusPainted(false);
  
-	 //Apply button, apply data change to Adafruit.io
+	 //Refresh button, refresh the data of soil from Adafruit.io
 	 
 	refresh.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent event) {
 			message.setText("");
+			//send request to Adafruit.io, receive the object as a list
 			List<String> list= request.receiveRequest();
 			int index = tabPanel.getSelectedIndex();
+			//update the data store in UI
 			functions.data_Update(list,index+1);
-			/*for (int i = 0; i < list.size(); i++) {
-				if (list.get(i).indexOf("key") != -1 && list.get(i).indexOf("VWC") != -1 && list.get(i).indexOf("vwc_high") == -1 && list.get(i).indexOf("vwc-low") == -1) {
-					//System.out.println(list.get(list.get(i).indexOf(i+5));
-					String temp = list.get(i+5);
-					variables.VWC = functions.find_fValue(temp);
-					//VWC.setValue(variables.VWC);
-					//VWCboard.setValue(Double.toString(variables.VWC));
-					guiFrame.repaint();
-				}
-			}*/
 			VWCboard.setValue(Double.toString(variables.VWC));
 			ECboard.setValue(Integer.toString(variables.EC));
 			tempboard.setValue(Double.toString(variables.temp));
@@ -334,6 +333,7 @@ public class test {
 		}
 	 });
 	 try {
+		 //change the Icon of refresh button
 		    Image img = ImageIO.read(getClass().getResource("refresh_icon2.png"));
 		    refresh.setIcon(new ImageIcon(img));
 		  } catch (Exception ex) {
@@ -342,7 +342,7 @@ public class test {
 	refresh.setBounds(581, 0, 52, 33);
 
 	
-	
+	//Apply button, click to apply the mode settings change to Adafruit.io
 	Applybutton = new JButton( "Apply");
 	Applybutton.setContentAreaFilled(false);
 	Applybutton.setFocusPainted(false);
@@ -353,19 +353,13 @@ public class test {
 	 {
 		 int vwc = VWC.getValue();
 		 variables.VWC = vwc;
+		 
 		 System.out.println(variables.VWC);
+		 //send it to Adafruit.io
 		 request.sendRequest();
+		 //save it to log.txt
 		 IO.save();
 		 message.setText("Successfully changed!");
-		 /*
-		 if (variables.mode.get(tabPanel.getSelectedIndex()) == "VWC") {
-			 int vwc_s = VWC.getValue();
-			 int vwc_e = VWC_end.getValue();
-			 variables.VWC_start.set(tabPanel.getSelectedIndex(), vwc_s);
-			 variables.VWC_end.set(tabPanel.getSelectedIndex(), vwc_e);
-		 }else if (variables.mode.get(tabPanel.getSelectedIndex()) == "time") {
-		 }
-		 */
 
 	 }
 	 });
@@ -418,6 +412,7 @@ public class test {
     	 JComponent panel2 = new JPanel();
     	 tabPanel.addTab(x+variables.sensor.get(i),panel2);
      }
+     //each time when change a tab, update the mode panel
      tabPanel.addChangeListener(new ChangeListener() 
      {
     	 public void stateChanged(ChangeEvent ee) {
@@ -453,17 +448,22 @@ public class test {
  //will ignore if input is empty(misclick or cancel)
  //will print error message if length isn't equal to 32(AIO-key length)
  
- public static void create_new_frame() {
+ public static void input_eA() {
 	
 	 account_panel = new JPanel();
      account_panel.setLayout(new BoxLayout(account_panel, BoxLayout.Y_AXIS));
      account_panel.setOpaque(true);
+     
      JTextField input = new JTextField(10);
+     
+     //enter button for applying change
      JButton button = new JButton("Enter");
      Border blackline = BorderFactory.createLineBorder(Color.black);
      button.setBackground(Color.WHITE);
      button.setAlignmentX(Component.CENTER_ALIGNMENT);
      input.setText(null);
+     
+     //change email or AIO key based on the global variable
      button.addActionListener(new ActionListener() {
     	 public void actionPerformed(ActionEvent e) {
     		 String temp = input.getText();
@@ -486,6 +486,7 @@ public class test {
     		 account_panel.setVisible(false);
     	 }
      });
+     //set panel style
      account_panel.setBorder(blackline);
      account_panel.setBackground(Color.WHITE);
      account_panel.add(input);
@@ -494,9 +495,6 @@ public class test {
      account_panel.setVisible(false);
      input.requestFocus();
      guiFrame.add(account_panel);
- }
- public static void addSensor() {
-	// Field
  }
  
  
@@ -512,8 +510,6 @@ public class test {
 	 VWCboard.setMajor(10);
 	 VWCboard.setMinor(5);
 
-	 //dashboard.setForeground(Color.BLUE);
-	 //dashboard.setBackground(Color.WHITE);
 	 //dashboard font color
 	 VWCboard.setTextColor(Color.black);
 	 //dashboard data color
@@ -589,16 +585,6 @@ public class test {
 	 
 	 List<String> list= request.receiveRequest();
 		functions.data_Update(list,1);
-		/*for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).indexOf("key") != -1 && list.get(i).indexOf("VWC") != -1 && list.get(i).indexOf("vwc_high") == -1 && list.get(i).indexOf("vwc-low") == -1) {
-				//System.out.println(list.get(list.get(i).indexOf(i+5));
-				String temp = list.get(i+5);
-				variables.VWC = functions.find_fValue(temp);
-				//VWC.setValue(variables.VWC);
-				//VWCboard.setValue(Double.toString(variables.VWC));
-				guiFrame.repaint();
-			}
-		}*/
 	VWCboard.setValue(Double.toString(variables.VWC));
 	ECboard.setValue(Integer.toString(variables.EC));
 	tempboard.setValue(Double.toString(variables.temp));

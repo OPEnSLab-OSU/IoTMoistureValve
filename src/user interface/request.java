@@ -28,6 +28,8 @@ public class request{
 		url += "&txtbox=";
 		
 		//url += Integer.toString(i);
+		
+		//mode option
 		if (Objects.equals(variables.mode.get(i),"time")) {
 			url += Integer.toString(1);
 		}
@@ -37,17 +39,21 @@ public class request{
 		if (Objects.equals(variables.mode.get(i),"both")) {
 			url += Integer.toString(3);
 		}
+		
+		//VWC/both mode
 		if (Objects.equals(variables.mode.get(i),"VWC") ||Objects.equals(variables.mode.get(i),"both")) {
 			url+="/";
 			url += Integer.toString(variables.VWC_start.get(i));
 			url+="/";
 			url += Integer.toString(variables.VWC_end.get(i));
-		}else {
+		}else {           // not VWC/both mode
 			url+="/";
 			url += Integer.toString(0);
 			url+="/";
 			url += Integer.toString(0);
 		}
+		
+		//time/both mode
 		if (Objects.equals(variables.mode.get(i),"time")|| Objects.equals(variables.mode.get(i),"both")) {
 			url+="/";
 			int tmp = Integer.parseInt(variables.Time.get(i));
@@ -59,15 +65,28 @@ public class request{
 			tmp = Integer.parseInt(variables.period.get(i));
 			tmp = tmp*60;
 			url+=Integer.toString(tmp);
-		}else {
+		}else {             //not time/both mode
 			url+="/";
 			url += Integer.toString(0);
 			url+="/";
 			url += Integer.toString(0);
 		}
 		url += "/";
+		//default value for change
 		url += Integer.toString(5);
 		
+		
+		/*
+		 if (recuring_check == 1){
+		 
+			url +="/";
+			url +="1";
+		 }else{
+		 	url +="/";
+		 	url +="0";
+		 }
+		 */
+		 
 		System.out.println(variables.mode.get(i));	
     		
         URL add = new URL(url);

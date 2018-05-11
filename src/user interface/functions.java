@@ -5,16 +5,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class functions{
+	//test function for multiple sensors
 	public static void addVWC_start(int n) {
 		variables.VWC_start.add(n);
 	}
+	//find the mode in the return object, it will not be used in the UI, only for early test
 	public static String find_Mode(String i) {
 		int j;
 		for (j = 0; j <i.length(); j++) {
 			if (i.charAt(j) == ':' ) {
+				//it will either VWC mode that have a length of 3
 				if (i.charAt(j+2) == 'V') {
 					return i.substring(j+2,j+4);
-				}else {
+				}else {   // or time/both mode that have a length of 4
 					return i.substring(j+2,j+5);
 				}
 			}
@@ -22,6 +25,8 @@ public class functions{
 		return variables.mode.get(test.tabPanel.getSelectedIndex());
 	}
 	
+	
+	//find the date store in the list
 	public static int find_date(String i) throws ParseException {
 		int j;
 		String up = " ";
@@ -50,12 +55,13 @@ public class functions{
 
 		//return variables.mode.get(test.tabPanel.getSelectedIndex());
 	}
-	
+	//find value in the list and transfer it to integer
 	public static int find_Value(String i) {
 		int result = 0;
 		int start,end,j;
 		start = end = 0;
 		int sign = 1;
+		//find start number
 		for (j = 0; j < i.length(); j++) {
 			if (i.charAt(j) == '-')
 				sign = -1;
@@ -67,7 +73,7 @@ public class functions{
 				return 0;
 			}
 		}
-		
+		// find end number
 		for (j = start; j < i.length()-1; j++) {
 			if (i.charAt(j+1) > '9' || i.charAt(j+1) < '0') {
 				end = j;
@@ -77,9 +83,12 @@ public class functions{
 		result = result * sign;
 		return result;
 	}
+	//test code for error check
 	public static boolean error_check(String i) {
 		return true;
 	}
+	
+	//find the value in the list, transfer it to double
 	public static double find_fValue(String i) {
 		if (i == null) {
 			test.message.setText("Can't find seletced value");
@@ -88,6 +97,7 @@ public class functions{
 		double result = 0;
 		int start,end,j;
 		start = end = 0;
+		//find start number
 		for (j = 0; j < i.length(); j++) {
 			if (i.charAt(j) > '0' && i.charAt(j) <= '9') {
 				start = j;
@@ -97,12 +107,13 @@ public class functions{
 				return 0;
 			}
 		}
-		
+		//find end number
 		for (j = start; j < i.length()-1; j++) {
 			if (i.charAt(j+1) > '9' || i.charAt(j+1) < '0') {
 				end = j;
 			}
 		}
+		//parse it
 		result = Double.parseDouble(i.substring(start,end));
 		return result;
 	}
@@ -118,7 +129,7 @@ public class functions{
 			}
 			if (i == list.size()-1) {
 				if (variables.error_message == 1)
-					test.message.setText("<html><font color = 'red'>Can't find value,<br> please check Adafrui account</font></html>");
+					test.message.setText("<html><font color = 'red'>Can't find value,<br> please check Adafruit account</font></html>");
 			}
 		}		
 		
