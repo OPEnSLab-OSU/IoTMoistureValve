@@ -67,7 +67,7 @@ enum class ValveState {CLOSED = 0, OPEN = 1};
 //Struct for storage of received instructions.
 typedef struct {
   boolean       valid;        // Is flash memory still good?
-  boolean       started;      // Irrigation has started.
+  boolean       recur;        // Should timer be recurring?
   ValveState    valve;        // Valve open or closed?
   DateTime      valve_change; // Time to next valve open/close.
   int           mode;         // Mode of operation (1-Timer, 2-VWC, 3-combined)
@@ -144,7 +144,7 @@ void setup() {
     //Get good defaults from client
     trig_vals.mode = 1;
     trig_vals.vwc_low = 10.15;
-    trig_vals.vwc_high = 16.02;
+    trig_vals.vwc_high = 20.02;
     trig_vals.start = 0;
     trig_vals.dur = 2;
     trig_vals.sleep = 1;
@@ -152,7 +152,11 @@ void setup() {
     trig_vals.dur_unix    = (temp_time.unixtime() + trig_vals.dur * 60UL);
     trig_vals.sleep_unix  = (temp_time.unixtime() + trig_vals.sleep * 60UL);
     trig_vals.valve = ValveState::CLOSED;
+    trig_vals.recur = true;
     trig_vals.valid = true;
+
+    valve_close();
+    delay(1000);
 
     trigger_flash_store.write(trig_vals);
   } else {
@@ -162,7 +166,11 @@ void setup() {
     Serial.print("VWC Upper: "); Serial.print(trig_vals.vwc_high); Serial.print(" ");
     Serial.print("Start Time: "); Serial.print(trig_vals.start); Serial.print(" ");
     Serial.print("Duration: "); Serial.print(trig_vals.dur);
-    Serial.print("Sleep time: "); Serial.println(trig_vals.sleep);
+    Serial.print("Sleep interval: "); Serial.println(trig_vals.sleep);
+    Serial.print("Start time (Unix): "); Serial.println(trig_vals.start_unix);
+    Serial.print("Duration time (Unix): "); Serial.println(trig_vals.dur_unix);
+    Serial.print("Sleep interval (Unix): "); Serial.println(trig_vals.sleep_unix);
+    Serial.print("Valve state: "); Serial.println(valveStateCheck());
   }
 
   Serial.println("RTC defined.");
@@ -408,9 +416,9 @@ void loop() {
         trig_vals.dur_unix    = (time_now.unixtime() + dur_inst * 60UL);
         trig_vals.sleep_unix  = (time_now.unixtime() + sleep_inst * 60UL);
 
-        Serial.println(trig_vals.start_unix);
-        Serial.println(trig_vals.dur_unix);
-        Serial.println(trig_vals.sleep_unix);
+//        Serial.println(trig_vals.start_unix);
+//        Serial.println(trig_vals.dur_unix);
+//        Serial.println(trig_vals.sleep_unix);
 
         trigger_flash_store.write(trig_vals);
 
@@ -432,20 +440,21 @@ void loop() {
     Serial.print(trig_vals.dur_unix); Serial.print(" ");
     Serial.println(trig_vals.sleep_unix);
 
-    Serial.println(valveStateCheck());
+    Serial.print("Valve currently: "); Serial.println(valveStateCheck());
 
     if (trig_vals.valve == ValveState::CLOSED) {
       switch (trig_vals.mode) {
         case 1:
-          Serial.println("Timer mode.");
+          Serial.println("INFO: Timer mode.");
 
           if (trig_vals.start_unix > time_now.unixtime()) {
-            Serial.println("Waiting...");
+            Serial.println("INFO: Start time later than now, waiting for next check in.");
             break;
           } else if ( (trig_vals.start_unix <= time_now.unixtime()) &&
                       (trig_vals.dur_unix > time_now.unixtime()) &&
-                      (trig_vals.dur > 0)) {
-            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
+                      (trig_vals.dur > 0))
+          {
+            Serial.print("INFO: Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
 
             valve_open();
             trig_vals.valve = ValveState::OPEN;
@@ -453,37 +462,35 @@ void loop() {
 
           } else {
             //TODO Send warning to user...?
-            Serial.println("WARN: No work to do, check times?");
+            Serial.println("WARN: Start and duration timers exceeded. Nothing to do. No recurring timer?");
           }
           break;
         case 2:
-          Serial.println("VWC mode.");
+          Serial.println("INFO: VWC mode.");
           Serial.print(trig_vals.vwc_low); Serial.print(" "); Serial.println(VWC);
           if (trig_vals.vwc_low > VWC && VWC < trig_vals.vwc_high) {
-            Serial.println("VWC low, opening...");
+            Serial.println("INFO: Current VWC low, opening...");
             valve_open();
             trig_vals.valve = ValveState::OPEN;
             trigger_flash_store.write(trig_vals);
             break;
-          } 
-//          else if (trig_vals.vwc_low < VWC && ) {
-//            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
-//
-//          } 
-          else {
+          } else {
             //TODO Send warning to user...?
-            Serial.println("WARN: VWC within range, waiting for next check in.");
+            Serial.println("INFO: VWC within range, waiting for next check in.");
           break;
           }
         case 3:
-          Serial.println("Combined mode.");
+          Serial.println("INFO: Combined mode.");
             if (trig_vals.start_unix > time_now.unixtime()) {
-            Serial.println("Waiting...");
+            Serial.println("INFO: Start time later than now, waiting for next check in.");
             break;
           } else if ( (trig_vals.start_unix <= time_now.unixtime()) &&
                       (trig_vals.dur_unix > time_now.unixtime()) &&
-                      (trig_vals.dur > 0)) {
-            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
+                      (trig_vals.dur > 0) &&
+                      (trig_vals.vwc_high > VWC))
+          {
+            Serial.print("INFO: Watering for "); Serial.print(trig_vals.dur);
+            Serial.print(" minutes while VWC is below "); Serial.println(trig_vals.vwc_high);
 
             valve_open();
             trig_vals.valve = ValveState::OPEN;
@@ -491,49 +498,61 @@ void loop() {
 
           } else {
             //TODO Send warning to user...?
-            Serial.println("WARN: No work to do, check times?");
+            Serial.println("WARN: Start and duration timers exceeded. Nothing to do. No recurring timer?");
           }
           break;
         default:
-          Serial.println("Fell off Switch statement. You shouldn't be here.");
+          Serial.println("ERROR: ValveState - CLOSED; Fell off Switch statement. You shouldn't be here.");
       }
     } else {
       switch (trig_vals.mode) {
         case 1:
+          Serial.println("INFO: Timer mode.");
           if(trig_vals.dur_unix > time_now.unixtime()){
-            Serial.println("Keep watering...");
+            Serial.println("INFO: Duration timer greater than now. Continuing to water.");
           } else if (trig_vals.dur_unix < time_now.unixtime())  {
-            Serial.println("Closing valve");
+            Serial.println("INFO: Duration timer exceeded. Closing valve.");
             valve_close();
             trig_vals.valve = ValveState::CLOSED;
             trigger_flash_store.write(trig_vals);
           }
           break;
         case 2:
-          if (trig_vals.vwc_high < VWC) {
-            Serial.println("VWC too high, closing...");
+          Serial.println("INFO: VWC mode.");
+          if (trig_vals.vwc_high > VWC) {
+            Serial.println("INFO: VWC below defined high value, continuing watering until next check in.");
+            break;
+          } else {
+            Serial.println("INFO: VWC above defined high value, closing...");
+            valve_close();
+            trig_vals.valve = ValveState::CLOSED;
+            trigger_flash_store.write(trig_vals);
+            //TODO Send warning to user...?
+          break;
+          }
+        case 3:
+          Serial.println("INFO: Combined mode.");
+          if(trig_vals.dur_unix > time_now.unixtime()){
+            Serial.println("INFO: Duration timer greater than now, checking VWC...");
+            if (trig_vals.vwc_high > VWC) {
+              Serial.println("INFO: VWC below defined high value, continuing watering until next check in.");
+              break;
+            } else {
+              Serial.println("INFO: VWC above defined high value, closing...");
+              valve_close();
+              trig_vals.valve = ValveState::CLOSED;
+              trigger_flash_store.write(trig_vals);
+              //TODO Send warning to user...?
+            break;
+            }
+          } else if (trig_vals.dur_unix < time_now.unixtime())  {
+            Serial.println("INFO: Duration timer has expired, closing...");
             valve_close();
             trig_vals.valve = ValveState::CLOSED;
             trigger_flash_store.write(trig_vals);
             break;
-          } 
-//          else if (trig_vals.vwc_low < VWC && ) {
-//            Serial.print("Watering for "); Serial.print(trig_vals.dur); Serial.println(" minutes.");
-//
-//          } 
-          else {
-            //TODO Send warning to user...?
-            Serial.println("WARN: VWC low or within range, waiting for next check in.");        
-          break;
-          }
-        case 3:
-          if(trig_vals.dur_unix > time_now.unixtime()){
-            Serial.println("Keep watering...");
-          } else if (trig_vals.dur_unix < time_now.unixtime())  {
-            Serial.println("Closing valve");
-            valve_close();
-            trig_vals.valve = ValveState::CLOSED;
-            trigger_flash_store.write(trig_vals);
+          } else {
+            Serial.println("ERROR: ValveState OPEN, Switch-case 3: Shouldn't be here. Impossible case.");
           }
           break;
         default:
