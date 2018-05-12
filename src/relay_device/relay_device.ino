@@ -111,8 +111,6 @@ volatile int MIN = 0;                 // Minutes  --- Use this for daily alarm i
 volatile int WakePeriodMin = 1;       // Period of time to take sample in Min, reset alarm based on this period (Bo - 5 min)
 const byte wakeUpPin = 13;
 
-boolean first_run;
-
 void setup() {
   digitalWrite(RFM95_RST, LOW);
   delay(10);
@@ -141,7 +139,7 @@ void setup() {
 
     DateTime temp_time = RTC_DS.now();
 
-    //Get good defaults from client
+    //Rough estimate default values given by client.
     trig_vals.mode = 1;
     trig_vals.vwc_low = 10.15;
     trig_vals.vwc_high = 20.02;
@@ -154,12 +152,14 @@ void setup() {
     trig_vals.recur = true;
     trig_vals.valid = true;
 
+    //Close valve to put it into good state if Flash storage values are lost.
     valve_close();
-    trig_vals.valve = ValveState::CLOSED;
+    trig_vals.valve = ValveState::CLOSED; //Write new values.
     delay(1000);
 
     trigger_flash_store.write(trig_vals);
   } else {
+    //Begin longest print-block ever...
     Serial.println("Got stored values -");
     Serial.print("Mode: "); Serial.print(trig_vals.mode); Serial.print(" ");
     Serial.print("VWC Lower: "); Serial.print(trig_vals.vwc_low); Serial.print(" ");
@@ -202,7 +202,6 @@ void setup() {
   Serial.println("---- END SETUP---- \n\n");
 
   doWakeRoutine = true;
-  first_run = true;
 }
 
 //Setup for sensor read.
@@ -212,6 +211,7 @@ String myCommand = "";
 char delimit[] = "+-"; // Delimiters for response parsing.
 float VWC, temp;
 int elec;
+char message[MSG_SIZE];
 
 int count = 0; //Testing loop counter.
 
@@ -233,117 +233,23 @@ void loop() {
 
     DateTime time_now = RTC_DS.now();
 
-    if (first_run) {
-      first_run = false; // Remove?
-    }
-
     Serial.println("----- BEGIN RUN -----");
     Serial.print("Run: #"); Serial.println(++count);
     Serial.print("Unix time now is: "); Serial.println(time_now.unixtime());
 
     last_batt_val = check_batt();
 
-    sdiResponse = "";
-    resp_buf = "";
-    myCommand = "";
+    // In sensor_utils.ino
+    // Cleans variables before new read and packaging.
+    preReadClean();
 
-    //-----------------------------
-    //----- Begin sensor read -----
-    //-----------------------------
+    // In sensor_utils.ino
+    // Reads data from Decagon device.
+    sensorRead();
 
-    //Take a measurement
-    myCommand = String(SENSOR_ADDRESS) + "M!";
-    Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
-
-    mySDI12.sendCommand(myCommand);
-    delay(30); // wait a while for a response
-
-    // build response string
-    while (mySDI12.available()) {
-      char c = mySDI12.read();
-      if ((c != '\n') && (c != '\r')) {
-        sdiResponse += c;
-        delay(5);
-      }
-    }
-
-    if (sdiResponse.length() > 1)
-      Serial.println(sdiResponse); //write the response to the screen
-    mySDI12.clearBuffer();
-
-    delay(1000); // delay between taking reading and requesting data
-
-    //Clear bufs
-    sdiResponse = ""; // clear the response string
-    resp_buf = "";
-
-    //Set garbage values.
-    VWC = 99999.9;
-    temp = 99999.9;
-    elec = 99999;
-
-    //Request data from last measurement
-    myCommand = String(SENSOR_ADDRESS) + "D0!";
-    Serial.print(myCommand); Serial.print(": "); //DEBUG echo command to terminal
-
-    mySDI12.sendCommand(myCommand);
-    delay(30); // wait a while for a response
-
-    while (mySDI12.available()) {  // build string from response
-      char c = mySDI12.read();
-      if ((c != '\n') && (c != '\r')) {
-        sdiResponse += c;
-        delay(5);
-      }
-    }
-
-    if (sdiResponse.length() > 1) {
-      Serial.println(sdiResponse); //write the response to the screen
-
-      char * pch;
-      char * buf = strdup(sdiResponse.c_str());
-      pch = strtok (buf, delimit);// Burn sensor number.
-
-      pch = strtok (NULL, delimit);  // VWC value
-      VWC = atof(pch);
-
-      pch = strtok (NULL, delimit);  // Temp value
-      temp = atof(pch);
-
-      pch = strtok (NULL, delimit);  // ElecCond value
-      elec = atoi(pch);
-    }
-    Serial.print("VWC: "); Serial.print(VWC);
-    Serial.print(" Temp: "); Serial.print(temp);
-    Serial.print(" ElecCond: "); Serial.println(elec);
-
-    mySDI12.clearBuffer();
-    //-----------------------------
-    //------ End sensor read ------
-    //-----------------------------
-
-    //------ Package read data ------
-    bndl.empty();
-
-    bndl.add(MyIDString "/VWC").add((float)VWC);
-    //  Serial.print("Add VWC ");
-    bndl.add(MyIDString "/temp").add((float)temp);
-    //  Serial.print("Add Temp ");
-    bndl.add(MyIDString "/ElecCond").add((int32_t)elec);
-    //  Serial.println("Add EC");
-    bndl.add(MyIDString "/vbat").add((float)last_batt_val);
-    //  Serial.println("Add VBat");
-
-    char message[MSG_SIZE];
-
-    memset(message, '\0', MSG_SIZE);
-    get_OSC_string(&bndl, message);
-
-    Serial.println(message);
-    Serial.print("Message length: "); Serial.println(strlen(message));
-    Serial.print("Max message length: "); Serial.println(RH_RF95_MAX_MESSAGE_LEN);
-
-    //delay(2000);
+    // In sensor_utils.ino
+    // Packages read data for sending.
+    packageData();
 
     Serial.print("Sending...");
     if (manager.sendtoWait((uint8_t*)message, strlen(message), HUB_ADDRESS)) {
