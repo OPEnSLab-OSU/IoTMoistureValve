@@ -24,7 +24,7 @@
 #define HUB_ADDRESS   30
 #define RELAY_ADDRESS 31
 
-//Time increments
+//Time incrementsdur
 #define SECOND    1000
 #define HALF_SEC  500
 #define TENTH_SEC 100
@@ -320,7 +320,7 @@ void loop() {
         trig_vals.sleep       = sleep_inst;
 
         trig_vals.start_unix  = (time_now.unixtime() + start_inst * 60UL);
-        trig_vals.dur_unix    = (time_now.unixtime() + dur_inst   * 60UL);
+        trig_vals.dur_unix    = (time_now.unixtime() + (start_inst * 60UL) + (dur_inst   * 60UL));
         trig_vals.sleep_unix  = (time_now.unixtime() + sleep_inst * 60UL);
 
         //        Serial.println(trig_vals.start_unix);
@@ -345,7 +345,9 @@ void loop() {
     Serial.print(trig_vals.sleep); Serial.print(" ");
     Serial.print(trig_vals.start_unix); Serial.print(" ");
     Serial.print(trig_vals.dur_unix); Serial.print(" ");
-    Serial.println(trig_vals.sleep_unix);
+    Serial.print(trig_vals.sleep_unix); Serial.print(" ");
+    Serial.println(trig_vals.recur);
+    
 
     Serial.print("Valve currently: "); Serial.println(valveStateCheck());
 
@@ -368,8 +370,18 @@ void loop() {
             trigger_flash_store.write(trig_vals);
 
           } else {
-            //TODO Send warning to user...?
-            Serial.println("WARN: Start and duration timers exceeded. Nothing to do. No recurring timer?");
+            if (trig_vals.recur){
+//                Serial.println("INFO: Recurring timer requested, resetting timer values for 24-hours from now.");
+//                trig_vals.start_unix  = (time_now.unixtime() + (86400UL - (trig_vals.dur * 60UL)));
+//                trig_vals.dur_unix    = (time_now.unixtime() +  86400UL);
+                Serial.println("INFO: Recurring timer requested, resetting timer values for 1 minute from now. from now.");
+                trig_vals.start_unix  = (time_now.unixtime() + 60UL);
+                trig_vals.dur_unix    = (time_now.unixtime() + (60UL) + (trig_vals.dur * 60UL));
+                Serial.print("INFO: New start/end time: "); Serial.print(trig_vals.start_unix);
+                Serial.print(" / "); Serial.println(trig_vals.dur_unix);
+            } else {
+              //TODO Send warning to user...?
+              Serial.println("WARN: Start and duration timers exceeded. Nothing to do. No recurring timer?");
           }
           break;
         case 2:
@@ -393,19 +405,35 @@ void loop() {
             break;
           } else if ( (trig_vals.start_unix <= time_now.unixtime()) &&
                       (trig_vals.dur_unix > time_now.unixtime()) &&
-                      (trig_vals.dur > 0) &&
-                      (trig_vals.vwc_high > VWC))
+                      (trig_vals.dur > 0))
           {
-            Serial.print("INFO: Watering for "); Serial.print(trig_vals.dur);
-            Serial.print(" minutes while VWC is below "); Serial.println(trig_vals.vwc_high);
+            Serial.print("INFO: Within time range for combined mode, checking VWC... ");
+            if (trig_vals.vwc_high > VWC) {
+              Serial.print("VWC is below "); Serial.print(trig_vals.vwc_high);
+              Serial.println("... opening.");
 
-            valve_open();
-            trig_vals.valve = ValveState::OPEN;
-            trigger_flash_store.write(trig_vals);
+              valve_open();
+              trig_vals.valve = ValveState::OPEN;
+              trigger_flash_store.write(trig_vals);
+            } else {
+              Serial.print("VWC is above "); Serial.print(trig_vals.vwc_high);
+              Serial.println("... waiting for next check in.");              
+            }
 
           } else {
+            if (trig_vals.recur){
+//                Serial.println("INFO: Recurring timer requested, resetting timer values for 24-hours from now.");
+//                trig_vals.start_unix  = (time_now.unixtime() + (86400UL - (trig_vals.dur * 60UL)));
+//                trig_vals.dur_unix    = (time_now.unixtime() +  86400UL);
+                Serial.println("INFO: Recurring timer requested, resetting timer values for 1 minute from now. from now.");
+                trig_vals.start_unix  = (time_now.unixtime() + 60UL);
+                trig_vals.dur_unix    = (time_now.unixtime() + (60UL) + (trig_vals.dur * 60UL));
+                Serial.print("INFO: New start/end time: "); Serial.print(trig_vals.start_unix);
+                Serial.print(" / "); Serial.println(trig_vals.dur_unix);
+            } else {
             //TODO Send warning to user...?
             Serial.println("WARN: Start and duration timers exceeded. Nothing to do. No recurring timer?");
+            }
           }
           break;
         default:
@@ -429,9 +457,12 @@ void loop() {
               valve_close();
               trig_vals.valve = ValveState::CLOSED;
               if (trig_vals.recur) {
-                Serial.println("INFO: Recurring timer requested, resetting timer values for 24-hours from now.");
-                trig_vals.start_unix  = (time_now.unixtime() + (86400UL - (trig_vals.dur * 60UL)));
-                trig_vals.dur_unix    = (time_now.unixtime() +  86400UL);
+//                Serial.println("INFO: Recurring timer requested, resetting timer values for 24-hours from now.");
+//                trig_vals.start_unix  = (time_now.unixtime() + (86400UL - (trig_vals.dur * 60UL)));
+//                trig_vals.dur_unix    = (time_now.unixtime() +  86400UL);
+                Serial.println("INFO: Recurring timer requested, resetting timer values for 1 minute from now. from now.");
+                trig_vals.start_unix  = (time_now.unixtime() + 60UL);
+                trig_vals.dur_unix    = (time_now.unixtime() + (60UL) + (trig_vals.dur * 60UL));
                 Serial.print("INFO: New start/end time: "); Serial.print(trig_vals.start_unix);
                 Serial.print(" / "); Serial.println(trig_vals.dur_unix);
               } else {
@@ -464,22 +495,15 @@ void loop() {
             trigger_flash_store.write(trig_vals);
           } else {
             if (trig_vals.dur_unix > time_now.unixtime()) {
-              Serial.println("INFO: Duration timer greater than now, checking VWC...");
+              Serial.print("INFO: Duration time in future, checking VWC...");
               if (trig_vals.vwc_high > VWC) {
-                Serial.println("INFO: VWC below defined high value, continuing watering until next check in.");
+                Serial.print("VWC below "); Serial.print(trig_vals.vwc_high);
+                Serial.println("... waiting for next check in.");
                 break;
               } else {
                 Serial.println("INFO: VWC above defined high value, closing...");
                 valve_close();
                 trig_vals.valve = ValveState::CLOSED;
-                if (trig_vals.recur) {
-                  Serial.println("INFO: Recurring timer requested, resetting timer values for 24-hours from now.");
-                  trig_vals.start_unix  = (time_now.unixtime() + (86400UL - (trig_vals.dur * 60UL)));
-                  trig_vals.dur_unix    = (time_now.unixtime() +  86400UL);
-                  Serial.print("INFO: New start/end time: "); Serial.print(trig_vals.start_unix); Serial.println(trig_vals.dur_unix);
-                } else {
-                  Serial.println("WARN: Recurring timer not requested. Updated need for continued operation.");
-                }
                 trigger_flash_store.write(trig_vals);
                 //TODO Send warning to user...?
                 break;
@@ -488,6 +512,17 @@ void loop() {
               Serial.println("INFO: Duration timer has expired, closing...");
               valve_close();
               trig_vals.valve = ValveState::CLOSED;
+               if (trig_vals.recur) {
+//                  Serial.println("INFO: Recurring timer requested, resetting timer values for 24-hours from now.");
+//                  trig_vals.start_unix  = (time_now.unixtime() + (86400UL - (trig_vals.dur * 60UL)));
+//                  trig_vals.dur_unix    = (time_now.unixtime() +  86400UL);
+                Serial.println("INFO: Recurring timer requested, resetting timer values for 1 minute from now. from now.");
+                trig_vals.start_unix  = (time_now.unixtime() + 60UL);
+                trig_vals.dur_unix    = (time_now.unixtime() + (60UL) + (trig_vals.dur * 60UL));
+                  Serial.print("INFO: New start/end time: "); Serial.print(trig_vals.start_unix); Serial.println(trig_vals.dur_unix);
+                } else {
+                  Serial.println("WARN: Recurring timer not requested. Updated need for continued operation.");
+                }
               trigger_flash_store.write(trig_vals);
               break;
             }
