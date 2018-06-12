@@ -49,15 +49,15 @@ CODE DOCUMENTATION:
         In the "loop()" function is where the real logic happens. Everything discussed will be repeated.
                   The first thing done is to attempt to connect to MQTT, which retries to connect every 5 seconds if failed. 
                   Next, the Hub checks to see if there are any new instructions from the subscription "txtbox".
-                           If there is, the data is read in by the hub and the function "get_inst_data(string)" is called from OSC_interpret.ino.
-                                    This method uses the knowledge of the formatted string to assign each value to its own variable.
-                           Next, the new instruction flag is set to true indicating that a new message needs to be sent to the hub.
+                   If there is, the data is read in by the hub and the function "get_inst_data(string)" is called from OSC_interpret.ino.
+                     This method uses the knowledge of the formatted string to assign each value to its own variable.
+                        Next, the new instruction flag is set to true indicating that a new message needs to be sent to the hub.
                   After that, the hub checks to see if the valve is trying to connect to send data. 
-                           If it is, essentially the same steps are performed as I just went over. 
-                                   The difference is the addition of the OSC library for this step.
-                                   The incoming soil data OSC bundle is broken down using the "get_OSC_bundle" method, 
+                      If it is, essentially the same steps are performed as I just went over. 
+                          The difference is the addition of the OSC library for this step.
+                          The incoming soil data OSC bundle is broken down using the "get_OSC_bundle" method, 
                                              This method breaks down the values from the string using intentional delimiters such as "f" for a float value, and so on.
                                              Once each value is removed from the string, it is added to the soil_data structure.
-                   
+                    
 
 
