@@ -1,17 +1,33 @@
-Double click sample.jar file to open the UI
+Purpose:
+The Purpose of this part is to help user control this IoT system and send notifications probably.  
 
-If you are under MAC OS,
-may have to change to java launcher to run the jar file
+
+Author:
+	Yizheng Wang
+
+
+Environment:
 
 The version of the java
 java version "1.8.0_171"
 Java(TM) SE Runtime Environment (build 1.8.0_171-b11)
 Java HotSpot(TM) 64-Bit Server VM (build 25.171-b11, mixed mode)
 
+You can download the lastest version of java at
+https://java.com/en/download
+
+Set up:
+Download the src file of UI from github.
+Double click sample.jar file to open the UI
+
+If you are under MAC OS,
+may have to change to java launcher to run the jar file
+or get a permission on your computer for running the jar file
+
+Features:
 
 You may have an account of Adafruit.io and input the AIO-key of the account to the UI
 You can change the email in use by click the mail button under file menu
-
 
 There are three mode to choose. VWC, time and both.
 VWC mode based on the vwc value of the soil.
@@ -28,3 +44,46 @@ Temp(Tempature), and EC (electric condition)
 
 You can switch to real-time mode by click the switch mode button under mode menu,
 real-time mode means you can open or close the valve immediately.
+
+
+
+Description of source code and functions
+
+Dashboard.java
+	An extended class of JComponent, to be specific, user can create a dashboard object to display a dashboard in the frame.
+
+dataUpdate.java
+	An extended class of Runnable object. It contains a while loop that will sleep 15 minutes after each loop. Every loop, it will update the current data stored and check if hub uploaded data to Adafruit.io. If not, it will send an email to target address.
+
+functions.java
+	It's the class contains data handle functions for this project.
+	It includes
+		find_date(string): find the date in string and transform it into Date object.
+		find_Value(string): find the int number in a string and return this number as integer.
+		find_fValue(string): find the float/double number in a string and return it as double.
+		data_Update(List<String>, int): find VWC, electric condition and temperature in the input list, and update the variables.
+
+IO.java
+	It's the class for the I/O operations. 
+	It includes:
+		save(): save mode settings with each sensor ID and current used AIO-key of user account in log.txt (for mode settings) and AIO.txt (for AIO-key)
+		load(): once open the jar file, it will load the AIO-key and mode settings. If the file doesn't exist, it will create new one and load in default value for each variable.
+
+main.java
+	Main class.
+	It will create two thread, one for data update at background, one for creating the frame.
+
+request.java
+	It's the class for communicating with Adafruit.io. 
+	It includes:
+		sendRequest(): combine variables in a specific format and add them into an url. Then send those change to Adafruit.
+		Request_t(): similar with sendRequest but it's used for bypass mode, will send an On/off change to Adafruit.
+		receiveRequest(): Send a receive request to Adafruit, get the return object as a list and return it.
+test.java
+	It's a class for creating the frame of UI and the components contain in the UI.
+	Which include  menu, a tabbed pane, panel for dashboard & panel, panel for mode box, panel for VWC mode, panel for time mode, panel for AIO-key/email address change, panel for Apply button, button for bypass mode, and a refresh button.
+variables.java:
+	Class for the variables that will be used in this project.
+
+
+
