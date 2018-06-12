@@ -1,1 +1,21 @@
+README for the Communication Hub
+
+Purpose: Access point for Valve to connect to via Long Range Radio signals.
+         The intention is to have 1 hub for every farm. One hub can operate many different valves. There hasn't been testing to determine how many yet.
+         The hub will send instructions to the valve and publish valve data to Adafruit.io
+         
+Required Hardware: Feather M0 board with Long range radio
+                    https://www.adafruit.com/product/3178
+                   Ethernet Featherwing
+                    https://www.adafruit.com/product/3201
+                    
+Required Software: Arduino IDE (Latest Version)
+
+Required Arduino Libraries: Ethernet2 
+                            OSCBundle Library (Belongs to OPEnS)
+                            RH_RF95 
+                            Adafruit_MQTT
+                            RadioHead 
+                   
+
 
