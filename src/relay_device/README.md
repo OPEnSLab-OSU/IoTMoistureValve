@@ -6,6 +6,24 @@ The main .ino file in this folder is the relay_device.ino file. All other .ino f
 
 This document will be broken down by the various .ino files and explained by the included parts of each.
 
+Author: Christopher Carlsen
+Purpose: The valve-control and soil moisture sensing device. Takes soil-data reads and opens/closes an attached valve device based on the information read. Also sends this data over LoRa radio to a Hub device.
+         
+Required Hardware:
+* Adafruit Feather M0 w/ RFM95 LoRa Radio: [https://www.adafruit.com/product/3178](https://www.adafruit.com/product/3178)
+* Adafruit Tripler Mini Kit FeatherWing: [https://www.adafruit.com/product/3417](https://www.adafruit.com/product/3417)
+* Adafruit DS3231 Precision RTC FeatherWing: [https://www.adafruit.com/product/3028](https://www.adafruit.com/product/3028)
+* Adafruit Power Relay FeatherWing: [https://www.adafruit.com/product/3191](https://www.adafruit.com/product/3191)
+
+Required Software:
+* Arduino IDE [https://www.arduino.cc/en/Main/Software](https://www.arduino.cc/en/Main/Software)
+
+Required Arduino Libraries: Ethernet2 
+                            OSCBundle Library (Belongs to OPEnS)
+                            RH_RF95 
+                            Adafruit_MQTT
+                            RadioHead 
+
 # Table of contents
 - [.ino file explanations](#ino-files-explained)
 - [relay_device](#relay_device)
