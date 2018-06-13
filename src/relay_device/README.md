@@ -18,11 +18,15 @@ Required Hardware:
 Required Software:
 * Arduino IDE [https://www.arduino.cc/en/Main/Software](https://www.arduino.cc/en/Main/Software)
 
-Required Arduino Libraries: Ethernet2 
-                            OSCBundle Library (Belongs to OPEnS)
-                            RH_RF95 
-                            Adafruit_MQTT
-                            RadioHead 
+Required Arduino Libraries (Libraries without links are accessible through the Arduino IDE):
+* SPI
+* Wire
+* OSCBundle
+* RH_RF95 [https://github.com/PaulStoffregen/RadioHead](https://github.com/PaulStoffregen/RadioHead)
+* SDI12 [https://github.com/EnviroDIY/Arduino-SDI-12](https://github.com/EnviroDIY/Arduino-SDI-12)
+* FlashStorage [https://github.com/cmaglie/FlashStorage](https://github.com/cmaglie/FlashStorage)
+* RTClibExtended [https://github.com/FabioCuomo/FabioCuomo-DS3231](https://github.com/FabioCuomo/FabioCuomo-DS3231) (This required some small edits to it that are documented in comments in the code.)
+
 
 # Table of contents
 - [.ino file explanations](#ino-files-explained)
