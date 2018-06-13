@@ -33,7 +33,7 @@ The general premise of this file is that the main-loop idles, waiting for an RTC
 
 The general logic flowchart for the main loop is as follow:
 
-![Logic flowchart for the Relay Device](../../res/relay_device/logic_chart_valve_controller_background.png){:class="img-responsive"}
+![Logic flowchart for the Relay Device](../../res/relay_device/logic_chart_valve_controller_background.png)
 
 [(Back to top)](#table-of-contents)
 
